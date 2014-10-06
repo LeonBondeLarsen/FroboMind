@@ -214,7 +214,7 @@
 		<node pkg="serial_nmea" name="frobit_nmea" type="serial_nmea_node" respawn="true" output="screen">
 			<param name="nmea_from_device_pub" value="/fmSignal/nmea_from_frobit"/>
 			<param name="nmea_to_device_sub" value="/fmSignal/nmea_to_frobit"/>
-			<param name="serial_device" value="/dev/frobit"/>
+			<param name="serial_device" value="/dev/ttyUSB0"/>
 			<param name="serial_baudrate" value="57600"/>
 			<param name="use_nmea_checksum" value="true"/>
         </node>
@@ -223,7 +223,7 @@
 		<node pkg="serial_string" name="imu_serial" type="serial_string_node" respawn="true" output="screen">
 			<param name="publisher_topic" value="/fmData/imu_rx" />	 
 			<param name="subscriber_topic" value="/fmData/imu_tx" />
-			<param name="device" value="/dev/imu" />	
+			<param name="device" value="/dev/ttyUSB1" />	
 			<param name="baudrate" value="115200" />
 			<param name="termination_character" value="10"/>
 		</node> 	

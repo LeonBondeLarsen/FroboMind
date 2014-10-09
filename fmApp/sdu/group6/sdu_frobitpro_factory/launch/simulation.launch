@@ -1,0 +1,31 @@
+<launch>
+	<include file="$(find sdu_frobitpro_factory)/launch/includes/decision_making.launch"/>
+	<include file="$(find sdu_frobitpro_factory)/launch/includes/hmi.launch"/>
+	
+	<!-- from action -->
+	<group ns="fmExecutors">
+		<node pkg="position_action_server" name="position_planner" type="positionGoalActionServer.py" output="screen">
+			<param name="cmd_vel_topic" value="/fmSignals/cmd_vel" />
+			<param name="max_linear_velocity" value="1"/>
+			<param name="max_angular_velocity" value="4.0"/>
+			<param name="max_angle_error" value="0.2"/>
+			<param name="max_distance_error" value="0.3"/>
+			<param name="retarder" value="0.1"/>
+			<param name="use_tf" value="True" />
+		     <param name="odom_frame" value="/odom" />
+		     <param name="base_frame" value="/base_footprint" />
+		</node>
+		
+		<node pkg="action_primitives" name="turn_executor" type="make_turn.py" output="screen">
+		     <param name="name" value="make_turn" />
+		     <param name="odom_frame" value="/odom" />
+		     <param name="base_frame" value="/base_footprint" />
+		     <param name="cmd_vel_topic" value="/fmSignals/cmd_vel" />
+		</node>
+	</group>
+	
+
+ 	<node pkg="stage_ros" type="stageros" name="simulator" args="$(find sdu_frobitpro_factory)/world/robolab.world"/>
+	<node pkg="twist_stamped_to_twist" name="converter" type="cmd_vel_converter.py"/>
+
+</launch>

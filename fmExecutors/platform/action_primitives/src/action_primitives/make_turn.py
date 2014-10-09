@@ -67,7 +67,7 @@ class TurnAction():
         self.__feedback = make_turnFeedback()
         
         self.__listen = TransformListener()
-        self.vel_pub = rospy.Publisher(cmd_vel_topic,TwistStamped)
+        self.vel_pub = rospy.Publisher(cmd_vel_topic,TwistStamped, queue_size=10)
         
         self.__turn_timeout = 200
         self.__start_time = rospy.Time.now()

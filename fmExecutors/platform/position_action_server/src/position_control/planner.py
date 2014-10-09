@@ -78,7 +78,7 @@ class PositionPlanner():
         if not self.use_tf :
             self.odometry_topic = rospy.get_param("~odometry_topic","/fmKnowledge/odom")
             self.odom_sub = rospy.Subscriber(self.odometry_topic, Odometry, self.onOdometry )
-        self.twist_pub = rospy.Publisher(self.cmd_vel_topic, TwistStamped)
+        self.twist_pub = rospy.Publisher(self.cmd_vel_topic, TwistStamped, queue_size=10)
                 
         # Parameters for action server
         self.period = 0.1
@@ -113,7 +113,7 @@ class PositionPlanner():
         self.quaternion = np.empty((4, ), dtype=np.float64)
           
         # Setup Publishers and subscribers
-        self.twist_pub = rospy.Publisher(self.cmd_vel_topic, TwistStamped)
+        self.twist_pub = rospy.Publisher(self.cmd_vel_topic, TwistStamped, queue_size=10)
         
     def execute(self,goal):
         # Construct a vector from position goal

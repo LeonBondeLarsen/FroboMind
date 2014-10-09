@@ -88,10 +88,10 @@ class WiiInterface():
         self.status_topic = rospy.get_param("~all_ok_topic",'/fmSafety/all_ok')     
 
         # Setup topics
-        self.deadman_pub = rospy.Publisher(self.deadman_topic, Bool)
-        self.automode_pub = rospy.Publisher(self.automode_topic, Bool)
-        self.twist_pub = rospy.Publisher(self.cmd_vel_topic, TwistStamped)
-        self.fb_pub = rospy.Publisher(self.feedback_topic, JoyFeedbackArray)
+        self.deadman_pub = rospy.Publisher(self.deadman_topic, Bool, queue_size=10)
+        self.automode_pub = rospy.Publisher(self.automode_topic, Bool, queue_size=10)
+        self.twist_pub = rospy.Publisher(self.cmd_vel_topic, TwistStamped, queue_size=10)
+        self.fb_pub = rospy.Publisher(self.feedback_topic, JoyFeedbackArray, queue_size=10)
         self.joy_sub = rospy.Subscriber(self.joy_topic, Joy, self.onJoy )
         self.status_sub = rospy.Subscriber(self.status_topic, BoolStamped , self.onAllOk)
 

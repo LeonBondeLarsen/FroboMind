@@ -4,7 +4,7 @@ from distutils.core import setup
 from catkin_pkg.python_setup import generate_distutils_setup
 
 d = generate_distutils_setup(
-  scripts=['mission_planners/waypoint_nav.py'],
+  scripts=['mission_planners/mission.py'],
   packages=['rsd_smach'],
   package_dir={'': 'src'}
 )

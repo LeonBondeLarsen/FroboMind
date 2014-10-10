@@ -11,7 +11,7 @@ def build():
     clear_proximity_sm = smach.StateMachine(outcomes=['proximityCleared','preempted','aborted'], input_keys=['next_x', 'next_y'])
 
     with clear_proximity_sm:
-         smach.StateMachine.add('proximityAlert', smach_ros.MonitorState("/wads", Float64, proximity_monitor_cb, 1), transitions={'valid':'proximityCleared', 'invalid':'proximityAlert', 'preempted':'preempted'})
+         smach.StateMachine.add('proximityAlert', smach_ros.MonitorState("/fmKnowledge/proximity", Float64, proximity_monitor_cb, 1), transitions={'valid':'proximityCleared', 'invalid':'proximityAlert', 'preempted':'preempted'})
         
     return clear_proximity_sm
 

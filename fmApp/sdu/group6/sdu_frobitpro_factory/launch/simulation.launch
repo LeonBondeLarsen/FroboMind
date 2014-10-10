@@ -16,16 +16,11 @@
 		     <param name="base_frame" value="/base_footprint" />
 		</node>
 		
-		<node pkg="action_primitives" name="turn_executor" type="make_turn.py" output="screen">
-		     <param name="name" value="make_turn" />
-		     <param name="odom_frame" value="/odom" />
-		     <param name="base_frame" value="/base_footprint" />
-		     <param name="cmd_vel_topic" value="/fmSignals/cmd_vel" />
-		</node>
 	</group>
 	
 
  	<node pkg="stage_ros" type="stageros" name="simulator" args="$(find sdu_frobitpro_factory)/world/robolab.world"/>
+ 	
 	<node pkg="twist_stamped_to_twist" name="converter" type="cmd_vel_converter.py"/>
 
 </launch>

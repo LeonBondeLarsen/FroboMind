@@ -32,8 +32,7 @@ import smach_ros
 import actionlib
 import threading
 from wii_interface import wii_interface 
-from rsd_smach.behaviours import follow_route
-from rsd_smach.behaviours import clear_proximity
+from rsd_smach.behaviours import safe_wpt_navigation
 from generic_smach.states import wii_states
 from nav_msgs.msg import Odometry    
 from std_msgs.msg import Float64
@@ -49,32 +48,15 @@ class Mission():
         self.hmi.register_callback_button_A(self.onButtonA)
           
     def build(self):
-        # Build concurrent route following and safety
-        navigation_sm = smach.Concurrence ( outcomes = ['proximityAlert','preempted'], 
-                                       default_outcome = 'preempted',
-                                       outcome_map = {'preempted':{'follow_route':'preempted'}, 'proximityAlert':{'proximity_monitor':'invalid'}},
-                                       output_keys=['next_x','next_y'],
-                                       child_termination_cb = onPreempt)
-
-        with navigation_sm:
-            smach.Concurrence.add('follow_route', follow_route.build())
-            smach.Concurrence.add('proximity_monitor', smach_ros.MonitorState("/wads", Float64, proximity_monitor_cb))
-
-        # Build the safety task        
-        safety_sm = smach.StateMachine(outcomes=['success', 'preempted', 'aborted'])
-        with safety_sm:
-            smach.StateMachine.add('NAVIGATION', navigation_sm, transitions={'proximityAlert':'CLEAR_PROXIMITY'})
-            smach.StateMachine.add('CLEAR_PROXIMITY', clear_proximity.build() , transitions={'proximityCleared':'NAVIGATION'})
-
         # Build the autonomous state as concurrence between wiimote and measuring behaviour to allow user preemption
         autonomous = smach.Concurrence(  outcomes = ['exitAutomode'],
-                                                default_outcome = 'exitAutomode',
-                                                outcome_map = {'exitAutomode':{'HMI':'preempted','SAFETY':'preempted'}},
-                                                child_termination_cb = onPreempt)
+                                         default_outcome = 'exitAutomode',
+                                         outcome_map = {'exitAutomode':{'HMI':'preempted','SAFETY':'preempted'}},
+                                         child_termination_cb = onPreempt)
 
         with autonomous:
             smach.Concurrence.add('HMI', wii_states.interfaceState(self.hmi))
-            smach.Concurrence.add('SAFETY', safety_sm)
+            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.build())
 
 
         
@@ -99,11 +81,6 @@ class Mission():
     def onButtonA(self):
         rospy.loginfo("A pressed")
 
-def proximity_monitor_cb(userdata, msg):
-    if (msg.data):
-        return True
-    else:
-        return False
 
 def onPreempt(outcome_map):
     """

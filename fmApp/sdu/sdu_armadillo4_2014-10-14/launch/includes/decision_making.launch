@@ -15,6 +15,7 @@
 			<param name="publish_frequency" value="5"/>
 			<param name="odom_frame" value="/odom" />
 			<param name="base_frame" value="/base_footprint" />
+			<param name="odom_topic" value="/base_pose_ground_truth"/>
 		</node>
 	</group>
 	

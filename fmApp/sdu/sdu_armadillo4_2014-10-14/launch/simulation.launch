@@ -21,6 +21,6 @@
 
  	<node pkg="stage_ros" type="stageros" name="simulator" args="$(find sdu_armadillo4_2014-10-14)/world/empty.world"/>
  	
-	<node pkg="twist_stamped_to_twist" name="converter" type="cmd_vel_converter.py"/>
+	<node pkg="twist_stamped_to_twist" name="twist_converter" type="cmd_vel_converter.py"/>
 
 </launch>

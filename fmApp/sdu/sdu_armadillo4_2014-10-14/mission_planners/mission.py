@@ -26,17 +26,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #****************************************************************************/
-import rospy
-import smach
-import smach_ros
-import actionlib
-import threading
+import rospy, smach, smach_ros, actionlib, threading
 from wii_interface import wii_interface 
 from gamepad_interface import gamepad_interface 
 from mission_smach.behaviours import safe_wpt_navigation
-from generic_smach.states import joy_states
-from nav_msgs.msg import Odometry    
-from std_msgs.msg import Float64
+from generic_smach.states import joy_states   
+
 
 class Mission():
     """    
@@ -45,9 +40,11 @@ class Mission():
     def __init__(self):
         rospy.init_node('mission_control')
         rospy.loginfo("mission control initialized")
-        #self.hmi = wii_interface.WiiInterface()
-        self.hmi = gamepad_interface.GamepadInterface()
+        
+        self.hmi = wii_interface.WiiInterface()
+        #self.hmi = gamepad_interface.GamepadInterface()
         self.hmi.register_callback_button_A(self.onButtonA)
+
           
     def build(self):
         # Build the autonomous state as concurrence between wiimote and measuring behaviour to allow user preemption
@@ -58,7 +55,7 @@ class Mission():
 
         with autonomous:
             smach.Concurrence.add('HMI', joy_states.interfaceState(self.hmi))
-            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.build())
+            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.build() )
 
 
         
@@ -82,7 +79,7 @@ class Mission():
 
     def onButtonA(self):
         rospy.loginfo("A pressed")
-
+   
 
 def onPreempt(outcome_map):
     """

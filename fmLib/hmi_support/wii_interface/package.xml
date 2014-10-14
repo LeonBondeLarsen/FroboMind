@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>wiimote_interface</name>
+  <name>wii_interface</name>
   <version>0.0.0</version>
   <description>The wiimote_interface package</description>
 

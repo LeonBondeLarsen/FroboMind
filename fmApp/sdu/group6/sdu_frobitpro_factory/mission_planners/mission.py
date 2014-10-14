@@ -33,7 +33,7 @@ import actionlib
 import threading
 from wii_interface import wii_interface 
 from rsd_smach.behaviours import safe_wpt_navigation
-from generic_smach.states import wii_states
+from generic_smach.states import joy_states
 from nav_msgs.msg import Odometry    
 from std_msgs.msg import Float64
 
@@ -55,7 +55,7 @@ class Mission():
                                          child_termination_cb = onPreempt)
 
         with autonomous:
-            smach.Concurrence.add('HMI', wii_states.interfaceState(self.hmi))
+            smach.Concurrence.add('HMI', joy_states.interfaceState(self.hmi))
             smach.Concurrence.add('SAFETY',  safe_wpt_navigation.build())
 
 
@@ -63,7 +63,7 @@ class Mission():
         # Build the top level mission control from the remote control state and the autonomous state
         mission_control = smach.StateMachine(outcomes=['preempted'])            
         with mission_control:
-            smach.StateMachine.add('REMOTE_CONTROL', wii_states.remoteControlState(self.hmi), transitions={'enterAutomode':'AUTO_MODE','preempted':'preempted'})
+            smach.StateMachine.add('REMOTE_CONTROL', joy_states.remoteControlState(self.hmi), transitions={'enterAutomode':'AUTO_MODE','preempted':'preempted'})
             smach.StateMachine.add('AUTO_MODE', autonomous, transitions={'exitAutomode':'REMOTE_CONTROL'})
         return mission_control
                        

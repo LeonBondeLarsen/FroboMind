@@ -32,6 +32,7 @@ import smach_ros
 import actionlib
 import threading
 from wii_interface import wii_interface 
+from gamepad_interface import gamepad_interface 
 from rsd_smach.behaviours import safe_wpt_navigation
 from generic_smach.states import joy_states
 from nav_msgs.msg import Odometry    
@@ -44,7 +45,8 @@ class Mission():
     def __init__(self):
         rospy.init_node('mission_control')
         rospy.loginfo("mission control initialized")
-        self.hmi = wii_interface.WiiInterface()
+        #self.hmi = wii_interface.WiiInterface()
+        self.hmi = gamepad_interface.GamepadInterface()
         self.hmi.register_callback_button_A(self.onButtonA)
           
     def build(self):

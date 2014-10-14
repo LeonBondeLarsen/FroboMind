@@ -2,7 +2,7 @@
 <package>
   <name>wii_interface</name>
   <version>0.0.0</version>
-  <description>The wiimote_interface package</description>
+  <description>The wii_interface package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://ros.org/wiki/wiimote_interface</url> -->
+  <!-- <url type="website">http://ros.org/wiki/wii_interface</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->

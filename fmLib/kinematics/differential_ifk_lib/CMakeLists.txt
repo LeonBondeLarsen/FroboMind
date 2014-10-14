@@ -62,13 +62,13 @@ catkin_package(
  add_library(${PROJECT_NAME} src/DifferentialIfk.cpp)
 
 ## Declare a cpp executable
-# add_executable(wiimote_interface_node src/wiimote_interface_node.cpp)
+# add_executable(wii_interface_node src/wii_interface_node.cpp)
 
 ## Add dependencies to the executable
  add_dependencies(${PROJECT_NAME} ${PROJECT_NAME})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(wiimote_interface_node
+# target_link_libraries(wii_interface_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -84,7 +84,7 @@ catkin_package(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS wiimote_interface wiimote_interface_node
+# install(TARGETS wii_interface wii_interface_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

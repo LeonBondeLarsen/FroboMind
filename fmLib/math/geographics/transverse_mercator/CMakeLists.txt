@@ -64,13 +64,13 @@ catkin_package(
 )
 
 ## Declare a cpp executable
-# add_executable(wiimote_interface_node src/wiimote_interface_node.cpp)
+# add_executable(wii_interface_node src/wii_interface_node.cpp)
 
 ## Add dependencies to the executable
-# add_dependencies(wiimote_interface_node ${PROJECT_NAME})
+# add_dependencies(wii_interface_node ${PROJECT_NAME})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(wiimote_interface_node
+# target_link_libraries(wii_interface_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -111,7 +111,7 @@ catkin_package(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_wiimote_interface.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_wii_interface.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

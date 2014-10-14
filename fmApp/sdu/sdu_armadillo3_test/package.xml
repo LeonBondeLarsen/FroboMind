@@ -51,8 +51,8 @@
   <run_depend>smach</run_depend>
   <build_depend>smach_ros</build_depend>
   <run_depend>smach_ros</run_depend>
-  <build_depend>wiimote_interface</build_depend>
-  <run_depend>wiimote_interface</run_depend>
+  <build_depend>wii_interface</build_depend>
+  <run_depend>wii_interface</run_depend>
   <build_depend>generic_smach</build_depend>
   <run_depend>generic_smach</run_depend>
   <build_depend>action_primitives</build_depend>

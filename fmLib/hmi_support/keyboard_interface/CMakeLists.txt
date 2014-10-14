@@ -46,7 +46,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp msgs rospy)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  # INCLUDE_DIRS include
-#  LIBRARIES wiimote_interface
+#  LIBRARIES wii_interface
 #  CATKIN_DEPENDS msgs rospy wiimote
 #  DEPENDS system_lib
 )
@@ -58,8 +58,8 @@ catkin_package(
  include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a cpp library
-# add_library(wiimote_interface
-#   src/${PROJECT_NAME}/wiimote_interface.cpp
+# add_library(wii_interface
+#   src/${PROJECT_NAME}/wii_interface.cpp
 # )
 
 ## Declare a cpp executable
@@ -85,7 +85,7 @@ catkin_package(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS wiimote_interface wiimote_interface_node
+# install(TARGETS wii_interface wii_interface_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -110,7 +110,7 @@ catkin_package(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_wiimote_interface.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_wii_interface.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

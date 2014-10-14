@@ -2,7 +2,6 @@ import rospy
 import smach
 import smach_ros
 from action_primitives.msg import *
-from rsd_smach.states import get_step_towards_point
 from position_action_server import *
 from position_action_server.msg import *
 from std_msgs.msg import Float64

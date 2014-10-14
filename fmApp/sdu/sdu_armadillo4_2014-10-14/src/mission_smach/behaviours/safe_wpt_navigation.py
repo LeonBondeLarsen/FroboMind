@@ -2,8 +2,8 @@ import rospy
 import smach
 import smach_ros
 import actionlib
-from rsd_smach.behaviours import follow_route
-from rsd_smach.behaviours import clear_proximity
+from mission_smach.behaviours import follow_route
+from mission_smach.behaviours import clear_proximity
 from position_action_server import *
 from position_action_server.msg import *
 from std_msgs.msg import Float64

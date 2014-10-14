@@ -2,7 +2,7 @@ import rospy
 import smach
 import smach_ros
 import actionlib
-from rsd_smach.states import get_next_point
+from mission_smach.states import get_next_point
 from position_action_server import *
 from position_action_server.msg import *
 

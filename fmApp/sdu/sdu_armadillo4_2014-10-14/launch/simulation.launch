@@ -10,7 +10,7 @@
 	<!-- from action -->
 	<group ns="fmExecutors">
 		<node pkg="position_action_server" name="position_planner" type="positionGoalActionServer.py" output="screen">
-			<param name="cmd_vel_topic" value="/fmSignals/cmd_vel" />
+			<param name="cmd_vel_topic" value="/fmCommands/cmd_vel" />
 			<param name="max_linear_velocity" value="1"/>
 			<param name="max_angular_velocity" value="4.0"/>
 			<param name="max_angle_error" value="0.2"/>

@@ -21,6 +21,7 @@
 		     <param name="base_frame" value="/base_footprint" />
 		</node>
 		
+		<node pkg="tf" type="static_transform_publisher" name="base_broadcaster" args="0 0 0 0 0 0 base base_pose_ground_truth 50"/>
 	</group>
 	
 

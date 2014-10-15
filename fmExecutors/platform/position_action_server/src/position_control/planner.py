@@ -59,8 +59,7 @@ class PositionPlanner():
         self.max_angular_velocity = rospy.get_param("~max_angular_velocity",1)
         self.max_initial_error = rospy.get_param("~max_initial_angle_error",1)
 
-        self.max_distance_error = rospy.get_param("~max_distance_error",0.2)
-        self.use_tf = rospy.get_param("~use_tf",False)        
+        self.max_distance_error = rospy.get_param("~max_distance_error",0.2)      
         self.max_angle_error = rospy.get_param("~max_angle_error", math.pi/4)
         self.retarder = rospy.get_param("~retarder", 0.8)
         

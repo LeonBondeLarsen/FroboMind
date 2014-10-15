@@ -26,7 +26,7 @@ hbl1650::hbl1650( )
 
 	// Declare variables for parsing parameters
 	double max_time_diff_input;
-	std::string cmd_vel_ch1_topic, cmd_vel_ch2_topic, serial_tx_topic, serial_rx_topic, command_relay_topic, deadman_topic,
+	std::string cmd_vel_ch1_topic, cmd_vel_ch2_topic, serial_tx_topic, serial_rx_topic, deadman_topic,
 	encoder_ch1_topic, encoder_ch2_topic, power_ch1_topic, power_ch2_topic, status_topic, temperature_topic,velocity_topic,
 	propulsion_module_status_topic, propulsion_module_feedback_topic, pid_topic;
 
@@ -34,7 +34,6 @@ hbl1650::hbl1650( )
 	local_node_handler.param<std::string>("pid_topic", pid_topic, "/fmInformation/pid");
 	local_node_handler.param<std::string>("serial_rx_topic", serial_rx_topic, "/fmCSP/S0_rx");
 	local_node_handler.param<std::string>("serial_tx_topic", serial_tx_topic, "/fmCSP/S0_tx");
-	local_node_handler.param<std::string>("command_relay_topic", command_relay_topic, "/fmData/command");
 	local_node_handler.param<std::string>("deadman_topic", deadman_topic, "/fmHMI/joy");
 	local_node_handler.param<std::string>("cmd_vel_ch1_topic", cmd_vel_ch1_topic, "/fmActuators/cmd_vel_ch1");
 	local_node_handler.param<std::string>("encoder_ch1_topic", encoder_ch1_topic, "/fmSensors/encoder_ch1");

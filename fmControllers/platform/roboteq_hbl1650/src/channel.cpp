@@ -41,10 +41,6 @@ void Channel::onTemperatureFeedback(ros::Time time, int feedback)
 void Channel::onCmdVel(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
 	velocity = msg->twist.linear.x;
-	// limit velocity
-	if(velocity >  max_velocity_mps) velocity = max_velocity_mps;
-	if(velocity < -max_velocity_mps) velocity = -max_velocity_mps;
-
 	time_stamp.last_twist_received = ros::Time::now();
 }
 
@@ -114,7 +110,11 @@ void Channel::onTimer(const ros::TimerEvent& e, RoboTeQ::status_t& status)
 						else
 						{
 							/* Velocity control with feed forward */
-							current_setpoint = regulator.output_from_input(velocity, current_velocity , period);
+							current_setpoint = regulator.output_from_input(velocity, current_velocity , period) + ff_gain*velocity;
+
+							// limit velocity
+							if(current_setpoint >  max_velocity_mps) current_setpoint = max_velocity_mps;
+							if(current_setpoint < -max_velocity_mps) current_setpoint = -max_velocity_mps;
 						}
 
 						current_thrust =  (int)(current_setpoint * mps_to_thrust); //Thrust in RoboTeQ units

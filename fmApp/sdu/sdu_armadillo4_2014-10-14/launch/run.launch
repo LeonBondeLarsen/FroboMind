@@ -1,0 +1,188 @@
+<launch>
+	<include file="$(find sdu_armadillo4_2014-10-14)/launch/includes/decision_making.launch"/>
+	<include file="$(find sdu_armadillo4_2014-10-14)/launch/includes/hmi.launch"/>
+	
+	<group ns="fmExecutors">
+		<node pkg="position_action_server" name="position_planner" type="positionGoalActionServer.py" output="screen">
+			<param name="cmd_vel_topic" value="/fmCommand/cmd_vel" />
+			<param name="max_linear_velocity" value="1"/>
+			<param name="max_angular_velocity" value="4.0"/>
+			<param name="max_angle_error" value="0.2"/>
+			<param name="max_distance_error" value="0.3"/>
+			<param name="retarder" value="0.1"/>
+			<param name="use_tf" value="True" />
+		        <param name="odom_frame" value="/odom" />
+		        <param name="base_frame" value="/base_footprint" />
+		</node>
+		
+	</group>
+	
+	<group ns="fmProcessing">
+		<node pkg="differential_odometry" name="differential_odometry" type="differential_odometry_node" output="screen" >
+                        <param name="enc_left_sub" value="/fmInformation/encoder_left" />
+                        <param name="enc_right_sub" value="/fmInformation/encoder_right" />
+                        <param name="imu_sub" value="/fmInformation/imu" />
+                        <param name="odom_pub" value="/fmKnowledge/encoder_odom" />
+                        <param name="yaw_angle_source" value="imu_angular_velocity"/>
+                        <param name="imu_angular_velocity_yaw_axis" value="-d" />
+                        <param name="vehicle_frame" value="base_footprint" />
+                        <param name="odom_estimate_frame" value="/wheel_odom" />
+                </node>
+	</group>	
+
+
+        <group ns="fmProcessors">
+                <!-- calculate odometry based on encoders and IMU yaw axis orientation -->
+                <node pkg="differential_odometry" name="differential_odometry" type="differential_odometry_node" output="screen" respawn="true">
+                        <param name="enc_left_sub" value="/fmInformation/encoder_left" />
+                        <param name="enc_right_sub" value="/fmInformation/encoder_right" />
+                        <param name="imu_sub" value="/fmInformation/imu" />
+                        <param name="odom_reset_sub" value="/fmInformation/odometry_reset" />
+                        <param name="odom_pub" value="/fmKnowledge/odometry" />
+                        <param name="odom_estimate_frame" value="/odom" />
+                        <param name="vehicle_frame" value="base_footprint" />
+                        <param name="encoder_output" value="absolute" />
+                        <param name="max_ticks_per_update" value="200" />
+                        <param name="yaw_angle_source" value="imu_angular_velocity" />
+                        <param name="imu_angular_velocity_yaw_axis" value="z" />
+                </node>
+
+                <!-- estimate robot pose -->
+                <!--node pkg="odometry_gnss_pose_estimator" name="pose_estimator" type="pose_estimator_node.py" output="screen" >
+                        <param name="odom_sub" value="/fmKnowledge/odometry" />
+                        <param name="imu_sub" value="/fmInformation/imu" />
+                        <param name="gga_sub" value="/fmInformation/gpgga_tranmerc" />
+                        <param name="pose_pub" value="/fmKnowledge/pose" />
+                        <param name="pose_status_pub" value="/fmKnowledge/pose_status" />
+                        <param name="odometry_timeout" value="0.5" />
+                        <param name="gnss_timeout" value="1.0" />
+                        <param name="imu_timeout" value="0.5" />
+                        <param name="absolute_orientation_timeout" value="30" />
+                        <param name="odometry_distance_variance" value="0.000001" />
+                        <param name="odometry_angular_variance" value="0.000001" />
+                        <param name="gnss_angular_variance" value="0.0001" />
+                        <param name="solution_required" value="4" />
+                </node-->
+
+                <!--node pkg="pose_2d_estimator" name="pose_estimator" type="pose_2d_estimator_node.py" output="screen" respawn="true">
+                        <param name="odom_sub" value="/fmKnowledge/odometry" />
+                        <param name="imu_sub" value="/fmInformation/imu" />
+                        <param name="gga_sub" value="/fmInformation/gpgga_tranmerc" />
+                        <param name="pose_pub" value="/fmKnowledge/pose" />
+                        <param name="publish_relative_pose" type="boolean" value="false" />
+                        <param name="odometry_distance_variance" value="0.000001" />
+                        <param name="odometry_angular_variance" value="0.000035" />
+                </node-->
+	</group>
+
+	<group ns="fmLib">
+                <!-- IMU -->
+                <node pkg="vectornav_vn100" name="imu_converter"  type="vectornav_vn100_node" output="screen" >
+                        <param name="vectornav_vn100_sub" value="/fmData/imu_rx"/>
+                        <param name="imu_pub" value="/fmInformation/imu"/>
+                        <param name="frame_id" value="imu_link"/>
+                        <param name="use_enu" value="true"/>
+                        <param name="covariance_x" value="0.001"/>
+                        <param name="covariance_y" value="0.001"/>
+                        <param name="covariance_z" value="0.001"/>
+                </node>
+
+                <!-- IMU -->
+                <node pkg="serial_string" name="imu_serial" type="serial_string_node" output="screen" respawn="true">
+                        <param name="publisher_topic" value="/fmData/imu_rx" />
+                        <param name="subscriber_topic" value="/fmData/imu_tx" />
+                        <param name="device" value="/dev/imu" />
+                        <param name="baudrate" value="115200" />
+                        <param name="termination_character" value="10"/>
+                </node>
+	
+                <!-- serial device and NMEA protocol handler for the RTK-GNSS -->
+                <!--node pkg="serial_nmea" name="gps_nmea" type="serial_nmea_node" respawn="true" output="screen" >
+                        <param name="nmea_from_device_pub" value="/fmData/nmea_from_gps"/>
+                        <param name="nmea_to_device_sub" value="/fmData/nmea_to_gps"/>
+                        <param name="serial_device" value="/dev/gps"/>
+                        <param name="serial_baudrate" value="115200"/>
+                        <param name="use_nmea_checksum" value="true"/>
+	        </node-->
+
+
+                <node pkg="differential_ifk" type="differential_ifk_node" name="differential_ifk" output="screen">
+                        <param name="hl_subscriber_topic" value="/fmCommand/cmd_vel" />
+                        <param name="ll_publisher_topic_left" value="/fmSignals/cmd_vel_left" />
+                        <param name="ll_publisher_topic_right" value="/fmSignals/cmd_vel_right" />
+                        <param name="distance_center_to_wheel" value="1.10" />
+                        <param name="deadmanbutton_topic" value="/fmCommand/deadman" />
+                </node>
+
+		<node pkg="sdu_armadillo3" type="sdu_armadillo3_node" name="roboteq_left" output="screen" respawn="true">
+			<param name="pid_topic" value="/fmInformation/pid_left" />
+			<param name="cmd_vel_ch1_topic" value="/fmSignals/cmd_vel_left"/>
+			<param name="serial_rx_topic" value="/fmData/left_belt_rx" />
+			<param name="serial_tx_topic" value="/fmData/left_belt_tx" />
+			<param name="deadman_topic" value="/fmCommand/deadman"/>
+			<param name="encoder_ch1_topic" value="/fmInformation/encoder_left"/>
+			<param name="propulsion_module_status_topic" value="/fmInformation/propulsion_module_status"/>
+			<param name="propulsion_module_feedback_topic" value="/fmInformation/propulsion_module_feedback_left"/>
+			<param name="power_ch1_topic" value="/fmData/power_left"/>
+			<param name="status_topic" value="/fmData/status"/>
+			<param name="ticks_per_meter" value="740" />
+			<param name="mps_to_thrust" value="500"/>
+			<param name="max_controller_command" value="800" />
+			<param name="p_gain" value="0.27"/>
+			<param name="i_gain" value="0.04"/>
+			<param name="d_gain" value="0.03"/>
+			<param name="feed_forward" value="0.54"/>
+			<param name="i_max" value="0.1"/>
+			<param name="closed_loop_operation" value="true"/>
+			<param name="position_control" value="false"/>
+			<param name="robot_max_acceleration" value="0.5"/>
+			<param name="robot_max_jerk" value="0.5"/>
+			<param name="brake_zeroband" value="0.2"/>  
+			<param name="velocity_tolerance" value="0.05"/>
+		</node>
+
+		<node pkg="sdu_armadillo3" type="sdu_armadillo3_node" name="roboteq_right" output="screen" respawn="true">
+			<param name="pid_topic" value="/fmInformation/pid_right" />
+			<param name="cmd_vel_ch1_topic" value="/fmSignals/cmd_vel_right"/>
+			<param name="serial_rx_topic" value="/fmData/right_belt_rx" />
+			<param name="serial_tx_topic" value="/fmData/right_belt_tx" />
+			<param name="deadman_topic" value="/fmCommand/deadman"/>
+			<param name="encoder_ch1_topic" value="/fmInformation/encoder_right"/>
+			<param name="propulsion_module_status_topic" value="/fmInformation/propulsion_module_status"/>
+			<param name="propulsion_module_feedback_topic" value="/fmInformation/propulsion_module_feedback_right"/>
+			<param name="power_ch1_topic" value="/fmData/power_right"/>
+			<param name="status_topic" value="/fmData/status"/>
+			<param name="ticks_per_meter" value="740" />
+			<param name="mps_to_thrust" value="500"/>
+			<param name="max_controller_command" value="800" />
+			<param name="p_gain" value="0.27"/>
+			<param name="i_gain" value="0.04"/>
+			<param name="d_gain" value="0.03"/>
+			<param name="feed_forward" value="0.54"/>
+			<param name="i_max" value="0.1"/>
+			<param name="closed_loop_operation" value="true"/>
+			<param name="position_control" value="false"/>
+			<param name="robot_max_acceleration" value="0.5"/>
+			<param name="robot_max_jerk" value="0.5"/>
+			<param name="brake_zeroband" value="0.2"/>  
+			<param name="velocity_tolerance" value="0.05"/>     
+		</node>
+
+		<node pkg="serial_string" type="serial_string_node" name="serial_comm_left" output="screen">
+			<param name="publisher_topic" value="/fmData/left_belt_rx" />
+			<param name="subscriber_topic" value="/fmData/left_belt_tx" />
+			<param name="device" value="/dev/ttyS2" />
+			<param name="baudrate" value="115200" />
+			<param name="termination_character" value="13" />
+		</node>
+	
+		<node pkg="serial_string" type="serial_string_node" name="serial_comm_right" output="screen">
+			<param name="publisher_topic" value="/fmData/right_belt_rx" />
+			<param name="subscriber_topic" value="/fmData/right_belt_tx" />
+			<param name="device" value="/dev/ttyS3" />
+			<param name="baudrate" value="115200" />
+			<param name="termination_character" value="13" />
+		</node>
+	</group>	
+</launch>
+

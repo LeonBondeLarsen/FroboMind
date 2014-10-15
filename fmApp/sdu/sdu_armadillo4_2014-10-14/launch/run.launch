@@ -1,7 +1,12 @@
 <launch>
 	<include file="$(find sdu_armadillo4_2014-10-14)/launch/includes/decision_making.launch"/>
 	<include file="$(find sdu_armadillo4_2014-10-14)/launch/includes/hmi.launch"/>
-	
+
+	<group ns="fmTools">
+		<node pkg="tf" type="static_transform_publisher" name="base_broadcaster" args="0 0 0 0 0 0 odom base_footprint 50"/>
+		<node pkg="tf" type="static_transform_publisher" name="wheel_broadcaster" args="0 0 0 0 0 0 odom odom_combined 50"/>
+	</group>
+		
 	<group ns="fmExecutors">
 		<node pkg="position_action_server" name="position_planner" type="positionGoalActionServer.py" output="screen">
 			<param name="cmd_vel_topic" value="/fmCommand/cmd_vel" />
@@ -26,7 +31,7 @@
                         <param name="yaw_angle_source" value="imu_angular_velocity"/>
                         <param name="imu_angular_velocity_yaw_axis" value="-d" />
                         <param name="vehicle_frame" value="base_footprint" />
-                        <param name="odom_estimate_frame" value="/wheel_odom" />
+                        <param name="odom_estimate_frame" value="/odom_combined" />
                 </node>
 	</group>	
 

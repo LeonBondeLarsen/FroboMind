@@ -7,11 +7,7 @@
 		</node-->
 		
 		<node pkg="joy" type="joy_node" name="joy" output="screen"/>
-		
-		<!-- visualization -->
-		<node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/>
-		
-		<node pkg="rqt_rviz" type="rqt_rviz" name="visualization" />
+	
   		
 	</group>
 </launch>

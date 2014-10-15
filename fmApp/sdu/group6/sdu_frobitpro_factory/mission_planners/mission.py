@@ -45,8 +45,10 @@ class Mission():
     def __init__(self):
         rospy.init_node('mission_control')
         rospy.loginfo("mission control initialized")
-        #self.hmi = wii_interface.WiiInterface()
-        self.hmi = gamepad_interface.GamepadInterface()
+
+        self.hmi = wii_interface.WiiInterface()
+        #self.hmi = gamepad_interface.GamepadInterface()
+
         self.hmi.register_callback_button_A(self.onButtonA)
           
     def build(self):

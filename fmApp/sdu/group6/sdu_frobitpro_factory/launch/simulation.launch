@@ -1,7 +1,10 @@
 <launch>
 	<include file="$(find sdu_frobitpro_factory)/launch/includes/decision_making.launch"/>
 	<include file="$(find sdu_frobitpro_factory)/launch/includes/hmi.launch"/>
-	
+
+	<node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/>
+	<node pkg="rqt_rviz" type="rqt_rviz" name="visualization" />
+		
 	<!-- from action -->
 	<group ns="fmExecutors">
 		<node pkg="position_action_server" name="position_planner" type="positionGoalActionServer.py" output="screen">
@@ -20,6 +23,15 @@
 	
 
  	<node pkg="stage_ros" type="stageros" name="simulator" args="$(find sdu_frobitpro_factory)/world/robolab.world"/>
+ 	
+ 	<node pkg="sim_ips" name="ips_simulator" type="sim_ips_node.py">
+		<param name="pose_sub" value="/base_pose_ground_truth" />
+		<param name="pose_pub" value="/fmInformation/ips" />
+		<param name="boundary_north" value="2.0"/>
+		<param name="boundary_south" value="-2.0"/>
+		<param name="boundary_east" value="2.0"/>
+		<param name="boundary_west" value="-2.0"/>
+ 	</node>
  	
 	<node pkg="twist_stamped_to_twist" name="converter" type="cmd_vel_converter.py"/>
 

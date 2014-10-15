@@ -6,8 +6,8 @@
 			<param name="fixed_wiimote_address" value="00:1F:C5:3B:AE:63"/>
 		</node-->
 		
-		<node pkg="joy" type="joy_node" name="joy" output="screen"/>
-	
-  		
+		<node pkg="joy" type="joy_node" name="joy" output="screen">
+	 		<param name="dev" value="/dev/input/js1" />
+  		</node>
 	</group>
 </launch>

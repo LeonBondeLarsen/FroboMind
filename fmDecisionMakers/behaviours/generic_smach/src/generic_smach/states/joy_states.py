@@ -44,6 +44,7 @@ class remoteControlState(smach.State):
     def execute(self, userdata):
         self.hmi.publishZeroCmdVel()
         while not rospy.is_shutdown():
+
             if not self.hmi.automode :
                 # Publish topics
                 self.hmi.publishDeadman()
@@ -72,7 +73,8 @@ class interfaceState(smach.State):
         
     def execute(self, userdata):
         self.hmi.publishZeroCmdVel()
-        while not rospy.is_shutdown():         
+        while not rospy.is_shutdown():   
+   
             if self.hmi.automode :
                 # Publish topics
                 self.hmi.publishDeadman()

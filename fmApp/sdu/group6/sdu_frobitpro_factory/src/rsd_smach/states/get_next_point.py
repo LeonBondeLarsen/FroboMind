@@ -6,10 +6,10 @@ class getNextPosition(smach.State):
     """
         Temporary implementation. State giving the next position goal based on hard-coded list
     """
-    def __init__(self):
+    def __init__(self, wpt):
         smach.State.__init__(self, outcomes=['succeeded'], output_keys=['next_x','next_y'])
         self.ptr = 0
-        self.position_list =[[3,0],[3,-3],[0,-3],[0,0]]
+        self.position_list = wpt
 
     def execute(self, userdata):
         userdata.next_x = self.position_list[self.ptr][0]
@@ -19,3 +19,4 @@ class getNextPosition(smach.State):
         if self.ptr == len(self.position_list) :
             self.ptr = 0
         return 'succeeded'       
+

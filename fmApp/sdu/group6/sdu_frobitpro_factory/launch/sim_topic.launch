@@ -1,0 +1,56 @@
+<launch>
+	<node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/>
+	<node pkg="rqt_rviz" type="rqt_rviz" name="visualization" />
+	<node pkg="rqt_publisher" type="rqt_publisher" name="publisher" />
+
+	<node pkg="sdu_frobitpro_factory" name="gui_node" type="gui_node.py" output="screen"/>
+
+	<group ns="mission_planner">
+		<node pkg="sdu_frobitpro_factory" name="mission" type="topic_controlled_mission.py" output="screen">
+		    <param name="deadman_topic" value="/fmSignals/deadman" />
+			<param name="cmd_vel_topic" value="/fmSignals/cmd_vel" />
+			<param name="feedback_topic" value="/HMI/joy/set_feedback" />
+			<param name="joy_topic" value="/HMI/joy" />
+			<param name="scale" value="2" />
+			<param name="status_topic" value="/fmData/status"/>		
+			<param name="max_linear_velocity" value="1"/>
+			<param name="max_angular_velocity" value="1"/>
+			<param name="deadband" value="5"/>
+			<param name="reduced_range" value="40"/>
+			<param name="publish_frequency" value="5"/>
+			<param name="odom_frame" value="/odom" />
+			<param name="base_frame" value="/base_footprint" />
+		</node>
+	</group>
+		
+	<!-- from action -->
+	<group ns="fmExecutors">
+		<node pkg="position_action_server" name="position_planner" type="positionGoalActionServer.py" output="screen">
+			<param name="cmd_vel_topic" value="/fmSignals/cmd_vel" />
+			<param name="max_linear_velocity" value="1"/>
+			<param name="max_angular_velocity" value="4.0"/>
+			<param name="max_angle_error" value="0.2"/>
+			<param name="max_distance_error" value="0.3"/>
+			<param name="retarder" value="0.1"/>
+			<param name="use_tf" value="True" />
+		     <param name="odom_frame" value="/odom" />
+		     <param name="base_frame" value="/base_footprint" />
+		</node>
+		
+	</group>
+	
+
+ 	<node pkg="stage_ros" type="stageros" name="simulator" args="$(find sdu_frobitpro_factory)/world/robolab.world"/>
+ 	
+ 	<node pkg="sim_ips" name="ips_simulator" type="sim_ips_node.py">
+		<param name="pose_sub" value="/base_pose_ground_truth" />
+		<param name="pose_pub" value="/fmInformation/ips" />
+		<param name="boundary_north" value="2.0"/>
+		<param name="boundary_south" value="-2.0"/>
+		<param name="boundary_east" value="2.0"/>
+		<param name="boundary_west" value="-2.0"/>
+ 	</node>
+ 	
+	<node pkg="twist_stamped_to_twist" name="converter" type="cmd_vel_converter.py"/>
+
+</launch>

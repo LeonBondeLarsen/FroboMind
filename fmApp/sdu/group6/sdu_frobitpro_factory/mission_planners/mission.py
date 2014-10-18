@@ -31,9 +31,11 @@ import smach
 import smach_ros
 import actionlib
 import threading
-from wii_interface import wii_interface 
-from gamepad_interface import gamepad_interface 
+#from wii_interface import wii_interface 
+#from gamepad_interface import gamepad_interface 
+from gui_interface import gui_interface 
 from rsd_smach.behaviours import safe_wpt_navigation
+from rsd_smach.states import gui_states
 from generic_smach.states import joy_states
 from nav_msgs.msg import Odometry    
 from std_msgs.msg import Float64
@@ -44,7 +46,7 @@ class Mission():
     """
     def __init__(self):
         rospy.init_node('mission_control')
-        rospy.loginfo("mission control initialized")
+        rospy.loginfo(rospy.get_name() + ": Mission control Initialised")
 
         self.hmi = wii_interface.WiiInterface()
         #self.hmi = gamepad_interface.GamepadInterface()
@@ -61,7 +63,6 @@ class Mission():
         with autonomous:
             smach.Concurrence.add('HMI', joy_states.interfaceState(self.hmi))
             smach.Concurrence.add('SAFETY',  safe_wpt_navigation.build())
-
 
         
         # Build the top level mission control from the remote control state and the autonomous state

@@ -2,9 +2,7 @@
 	<!-- HMI -->
 	<group ns="HMI">
 
-		<node pkg="wiimote" type="wiimote_node.py" name="wiimote" respawn="true">
-			<param name="fixed_wiimote_address" value="00:1F:C5:3B:AE:63"/>
-		</node>
+		<!--node pkg="wiimote" type="wiimote_node.py" name="wiimote" respawn="true"/-->
 		
 		<!--node pkg="joy" type="joy_node" name="joy" output="screen"/-->
 		

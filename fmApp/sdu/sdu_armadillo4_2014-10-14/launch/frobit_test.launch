@@ -1,0 +1,159 @@
+<launch>
+	<!-- TF: robot is base. Encoder + Imu are fused to tf from world to base -->
+
+	<param name="diff_steer_wheel_distance" value="0.19"/>
+	<param name="ticks_per_meter_left" value="1420" />
+	<param name="ticks_per_meter_right" value="1420" />
+	<param name="robot_max_velocity" value="0.5"/>
+
+	<node pkg="rosbag" name="rosbag_record" type="record" args="-a"/>
+	<node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/>
+			
+	<group ns="HMI">
+		<node pkg="wiimote" type="wiimote_node.py" name="wiimote" respawn="true"/>
+	</group>
+	
+	<group ns="fmSensors">
+		<node pkg="vectornav_vn100" name="imu_node"  type="vectornav_vn100_node" output="screen"  respawn="true">
+			<param name="vectornav_vn100_sub" value="/fmData/imu_rx"/>
+			<param name="imu_pub" value="/fmInformation/imu"/>
+			<param name="frame_id" value="imu_link"/>
+			<param name="use_enu" value="true"/>
+			<param name="covariance_x" value="0.001"/>
+			<param name="covariance_y" value="0.001"/>
+			<param name="covariance_z" value="0.001"/>
+		 </node>
+	</group>	
+
+	<group ns="fmProcessors">
+		<node pkg="differential_odometry" name="differential_odometry" type="differential_odometry_node" output="screen" respawn="true">
+	        <param name="enc_left_sub" value="/fmInformation/encoder_left" />
+	        <param name="enc_right_sub" value="/fmInformation/encoder_right" />
+	        <param name="imu_sub" value="/fmInformation/imu" />
+	        <param name="odom_reset_sub" value="/fmInformation/odometry_reset" />
+	        <param name="odom_pub" value="/fmKnowledge/odometry" />
+	        <param name="odom_estimate_frame" value="odom" />
+	        <param name="vehicle_frame" value="base" />
+	        <param name="encoder_output" value="absolute" />
+	        <param name="max_ticks_per_update" value="200" />
+	        <param name="yaw_angle_source" value="imu_angular_velocity" />
+	        <param name="imu_angular_velocity_yaw_axis" value="z" />
+		</node>
+
+		<!--node pkg="odometry_gnss_pose_estimator" name="pose_estimator" type="pose_estimator_node.py" output="screen" >
+			<param name="odom_sub" value="/fmKnowledge/odometry" />
+			<param name="imu_sub" value="/fmInformation/imu" />
+			<param name="gga_sub" value="/fmInformation/gpgga_tranmerc" />
+			<param name="pose_pub" value="/fmKnowledge/pose" />
+			<param name="pose_status_pub" value="/fmKnowledge/pose_status" />
+			<param name="odometry_timeout" value="0.5" /> 
+			<param name="gnss_timeout" value="1.0" /> 
+			<param name="imu_timeout" value="0.5" />
+			<param name="absolute_orientation_timeout" value="30" />
+			<param name="odometry_distance_variance" value="0.000001" />
+			<param name="odometry_angular_variance" value="0.000001" /> 
+			<param name="gnss_angular_variance" value="0.0001" />
+			<param name="solution_required" value="0" />
+		</node-->
+	</group>
+
+	<group ns="fmDecisionMakers">
+		<node pkg="sdu_armadillo4_2014-10-14" name="mission" type="mission.py" output="screen">
+		    <param name="deadman_topic" value="/fmCommand/deadman" />
+			<param name="cmd_vel_topic" value="/fmCommand/cmd_vel" />
+			<param name="feedback_topic" value="/HMI/joy/set_feedback" />
+			<param name="joy_topic" value="/HMI/joy" />
+			<param name="scale" value="2" />
+			<param name="status_topic" value="/fmData/status"/>		
+			<param name="max_linear_velocity" value="0.5"/>
+			<param name="max_angular_velocity" value="1"/>
+			<param name="deadband" value="5"/>
+			<param name="reduced_range" value="40"/>
+			<param name="publish_frequency" value="5"/>
+			<param name="odom_frame" value="/odom" />
+			<param name="base_frame" value="/base_footprint" />
+			<param name="odom_topic" value="/odom"/> <!--param name="odom_topic" value="/base_pose_ground_truth"/-->
+		</node>
+	</group>	
+			
+	<group ns="fmExecutors">
+		<node pkg="position_action_server" name="position_planner" type="positionGoalActionServer.py" output="screen">
+			<param name="cmd_vel_topic" value="/fmCommand/cmd_vel" />
+			<param name="odom_frame" value="world" />
+			<param name="odom_topic" value="fmKnowledge/odom" />  <!-- only used if tf is not -->
+			<param name="base_frame" value="base" />
+			<param name="use_tf" value="True" />
+			
+			<param name="max_linear_velocity" value="0.5"/>
+			<param name="max_angular_velocity" value="1.0"/>
+			<param name="max_initial_angle_error" value="1"/>  <!-- robot turns in place if angle larger than this threshold -->
+			
+			<param name="max_distance_error" value="0.3"/>  <!-- goal is considered reached when distance to target is below this threshold -->
+			<param name="max_angle_error" value="0.2"/>  <!-- retarder is active above this threshold -->
+			<param name="retarder" value="0.1"/>  <!-- linear velocity is reduced by this factor when retarder is active -->
+			
+			<param name="lin_p" value="1.0"/>  <!-- PID parametres for linear velocity -->
+			<param name="lin_i" value="0.0"/>
+			<param name="lin_d" value="0.0"/>
+			
+			<param name="ang_p" value="1.0"/>  <!-- PID parametres for angular velocity -->
+			<param name="ang_i" value="0.0"/>
+			<param name="ang_d" value="0.0"/>
+			
+			<param name="int_max" value="0"/>  <!-- anti wind up protection common to linear and angular-->
+		</node>	
+	</group>
+	
+	<group ns="fmLib">
+		<node pkg="sdu_frobit_v2" name="frobit" type="frobit_interface_node.py" output="screen" >
+    		<param name="deadman_sub" value="/fmCommand/deadman" />
+			<param name="cmd_vel_sub" value="/fmCommand/cmd_vel" />
+			<param name="enc_left_pub" value="/fmInformation/encoder_left" />
+			<param name="enc_right_pub" value="/fmInformation/encoder_right" />
+			<param name="wheel_status_left_pub" value="/fmInformation/wheel_status_left" />
+			<param name="wheel_status_right_pub" value="/fmInformation/wheel_status_right" />
+			<param name="wheel_feedback_left_pub" value="/fmInformation/wheel_feedback_left" />
+			<param name="wheel_feedback_right_pub" value="/fmInformation/wheel_feedback_right" />
+			<param name="wheel_pid_left_pub" value="/fmInformation/wheel_pid_left" />
+			<param name="wheel_pid_right_pub" value="/fmInformation/wheel_pid_right" />
+			<param name="nmea_from_frobit_sub" value="/fmSignal/nmea_from_frobit" />	 
+			<param name="nmea_to_frobit_pub" value="/fmSignal/nmea_to_frobit" />	 
+			<param name="publish_wheel_status_rate" value="10" />
+			<param name="publish_wheel_feedback_rate" value="10" />
+			<param name="publish_wheel_pid_rate" value="10" />
+			<param name="castor_front" value="true"/>
+            <param name="max_linear_acceleration" value="16.2"/>
+            <param name="max_angular_acceleration" value="16.0"/>
+			<param name="wheel_drive_feed_forward" value="85" /> 
+			<param name="wheel_drive_kp" value="5" /> 
+			<param name="wheel_drive_ki" value="10" /> 
+			<param name="wheel_drive_kd" value="5" /> 
+			<param name="wheel_drive_max_integral_output" value="300" /> 
+			<param name="wheel_turn_feed_forward" value="110" /> 
+			<param name="wheel_turn_kp" value="10" /> 
+			<param name="wheel_turn_ki" value="20" /> 
+			<param name="wheel_turn_kd" value="3" /> 
+			<param name="wheel_turn_max_integral_output" value="300" /> 
+			<param name="supply_voltage_scale_factor" value="0.01746" /> 
+			<param name="min_supply_voltage" value="12.1" /> 
+			<param name="show_voltage_interval" value="300" /> 
+		</node>
+		
+		<node pkg="serial_nmea" name="frobit_nmea" type="serial_nmea_node" respawn="true" output="screen">
+			<param name="nmea_from_device_pub" value="/fmSignal/nmea_from_frobit"/>
+			<param name="nmea_to_device_sub" value="/fmSignal/nmea_to_frobit"/>
+			<param name="serial_device" value="/dev/frobitpro"/>
+			<param name="serial_baudrate" value="57600"/>
+			<param name="use_nmea_checksum" value="true"/>
+        </node>	
+		
+        <node pkg="serial_string" name="imu_serial" type="serial_string_node" output="screen" respawn="true">
+            <param name="publisher_topic" value="/fmData/imu_rx" />
+            <param name="subscriber_topic" value="/fmData/imu_tx" />
+            <param name="device" value="/dev/imu" />
+            <param name="baudrate" value="115200" />
+            <param name="termination_character" value="10"/>
+        </node>
+	</group>	
+</launch>
+

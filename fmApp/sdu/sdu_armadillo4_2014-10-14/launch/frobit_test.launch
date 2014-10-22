@@ -2,12 +2,11 @@
 	<!-- TF: robot is base. Encoder + Imu are fused to tf from world to base -->
 
 	<param name="diff_steer_wheel_distance" value="0.19"/>
-	<param name="ticks_per_meter_left" value="1420" />
-	<param name="ticks_per_meter_right" value="1420" />
-	<param name="robot_max_velocity" value="0.5"/>
+	<param name="ticks_per_meter_left" value="710" />
+	<param name="ticks_per_meter_right" value="710" />
+	<param name="robot_max_velocity" value="2.0"/>
 
 	<node pkg="rosbag" name="rosbag_record" type="record" args="-a"/>
-	<node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/>
 			
 	<group ns="HMI">
 		<node pkg="wiimote" type="wiimote_node.py" name="wiimote" respawn="true"/>
@@ -32,7 +31,7 @@
 	        <param name="imu_sub" value="/fmInformation/imu" />
 	        <param name="odom_reset_sub" value="/fmInformation/odometry_reset" />
 	        <param name="odom_pub" value="/fmKnowledge/odometry" />
-	        <param name="odom_estimate_frame" value="odom" />
+	        <param name="odom_estimate_frame" value="world" />
 	        <param name="vehicle_frame" value="base" />
 	        <param name="encoder_output" value="absolute" />
 	        <param name="max_ticks_per_update" value="200" />
@@ -61,6 +60,7 @@
 		<node pkg="sdu_armadillo4_2014-10-14" name="mission" type="mission.py" output="screen">
 		    <param name="deadman_topic" value="/fmCommand/deadman" />
 			<param name="cmd_vel_topic" value="/fmCommand/cmd_vel" />
+			<param name="odom_topic" value="fmKonowledge/pose" />
 			<param name="feedback_topic" value="/HMI/joy/set_feedback" />
 			<param name="joy_topic" value="/HMI/joy" />
 			<param name="scale" value="2" />
@@ -69,10 +69,10 @@
 			<param name="max_angular_velocity" value="1"/>
 			<param name="deadband" value="5"/>
 			<param name="reduced_range" value="40"/>
-			<param name="publish_frequency" value="5"/>
-			<param name="odom_frame" value="/odom" />
-			<param name="base_frame" value="/base_footprint" />
-			<param name="odom_topic" value="/odom"/> <!--param name="odom_topic" value="/base_pose_ground_truth"/-->
+			<param name="publish_frequency" value="20"/>
+			<param name="odom_frame" value="world" />
+			<param name="base_frame" value="base" />
+			<param name="odom_topic" value="/fmKnowledge/pose"/> <!--param name="odom_topic" value="/base_pose_ground_truth"/-->
 		</node>
 	</group>	
 			
@@ -88,7 +88,7 @@
 			<param name="max_angular_velocity" value="1.0"/>
 			<param name="max_initial_angle_error" value="1"/>  <!-- robot turns in place if angle larger than this threshold -->
 			
-			<param name="max_distance_error" value="0.3"/>  <!-- goal is considered reached when distance to target is below this threshold -->
+			<param name="max_distance_error" value="0.05"/>  <!-- goal is considered reached when distance to target is below this threshold -->
 			<param name="max_angle_error" value="0.2"/>  <!-- retarder is active above this threshold -->
 			<param name="retarder" value="0.1"/>  <!-- linear velocity is reduced by this factor when retarder is active -->
 			
@@ -134,7 +134,7 @@
 			<param name="wheel_turn_ki" value="20" /> 
 			<param name="wheel_turn_kd" value="3" /> 
 			<param name="wheel_turn_max_integral_output" value="300" /> 
-			<param name="supply_voltage_scale_factor" value="0.01746" /> 
+			<param name="supply_voltage_scale_factor" value="0.03747" /> 
 			<param name="min_supply_voltage" value="12.1" /> 
 			<param name="show_voltage_interval" value="300" /> 
 		</node>

@@ -68,7 +68,12 @@ class FrobitInterfaceNode():
 		# variables
 		self.frobit_state = 0
 		self.frobit_state_prev = -1
-		self.frobit_voltage_conv = 5.0*(1800.0 + 700.0)/(700.0*1023.0) #(voltage divider 1800/700 ohm)
+        
+		# Leon 22/10-2014 changed: 
+		#self.frobit_voltage_conv = 5.0*(1800.0 + 700.0)/(700.0*1023.0) #(voltage divider 1800/700 ohm)
+		# to
+		self.frobit_voltage_conv = rospy.get_param("~supply_voltage_scale_factor", 0.03747)
+        
 		self.frobit_voltage_ok = False
 		self.frobit_volt = 0.0
 		self.send_cfg_tout = 0.0

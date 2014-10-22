@@ -303,5 +303,5 @@ class PositionPlanner():
                 (self.position,self.heading) = self.__listen.lookupTransform( self.odom_frame,self.base_frame,rospy.Time(0)) # The transform is returned as position (x,y,z) and an orientation quaternion (x,y,z,w).
                 ret = True
             except (tf.LookupException, tf.ConnectivityException),err:
-                rospy.loginfo("could not locate vehicle")
+                rospy.loginfo(rospy.get_name() + " : could not locate vehicle "+str(err))
             return ret          

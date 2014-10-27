@@ -1,0 +1,25 @@
+<launch>
+
+	<node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/>
+	<node pkg="rqt_rviz" type="rqt_rviz" name="visualization" />
+	<node pkg="stage_ros" type="stageros" name="simulator" args="$(find sdu_frobitpro_factory)/world/robolab.world"/>
+	
+	<node pkg="tf" type="static_transform_publisher" name="world_remap" args="0 0 0 0 0 0 1 /odom world 100" />
+ 	<node pkg="tf" type="static_transform_publisher" name="base_remap" args="0 0 0 0 0 0 1 /base_footprint base 100" />
+ 	
+ 	<node pkg="sim_ips" name="ips_simulator" type="sim_ips_node.py">
+		<param name="pose_sub" value="/base_pose_ground_truth" />
+		<param name="pose_pub" value="/fmInformation/ips" />
+		<param name="boundary_north" value="2.0"/>
+		<param name="boundary_south" value="-2.0"/>
+		<param name="boundary_east" value="2.0"/>
+		<param name="boundary_west" value="-2.0"/>
+ 	</node>
+ 	
+	<node pkg="twist_stamped_to_twist" name="converter" type="cmd_vel_converter.py">
+		<param name="cmd_vel_sub" value="/fmCommand/cmd_vel"/>
+		<param name="deadman_sub" value="/fmCommand/deadman"/>
+		<param name="cmd_vel_pub" value="/cmd_vel"/>
+	</node>
+
+</launch>

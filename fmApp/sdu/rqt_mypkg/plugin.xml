@@ -1,0 +1,20 @@
+<library path="src">
+	<class name="UI Plugin" type="rqt_mypkg.frobitUI.UIPlugin" base_class_type="rqt_gui_py::Plugin">
+        	<description>
+          		Python GUI Plugin for Frobit User Interface.
+        	</description>
+        	<qtgui>
+          		<!-- optional grouping...
+          		<group>
+            			<label>Group</label>
+         		</group>
+         		<group>
+           			<label>Subgroup</label>
+         		</group>
+         		-->
+         		<label>Frobit Robot Plugin</label>
+         		<icon type="theme">system-help</icon>
+         		<statustip>User Interface</statustip>
+       		</qtgui>
+     </class>
+</library>

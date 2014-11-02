@@ -1,0 +1,5 @@
+<launch>
+	<node pkg="rqt_mypkg" name="testNode" type="testNode.py" output="screen">
+	<param name = "testData" value = "/fmTest/testData"/>
+	</node>
+</launch>

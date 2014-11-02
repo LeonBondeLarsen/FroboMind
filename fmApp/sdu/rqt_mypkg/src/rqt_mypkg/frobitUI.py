@@ -7,8 +7,6 @@ from python_qt_binding import loadUi
 from PyQt4.QtGui import QWidget, QPushButton, QLabel
 import sys
 from std_msgs.msg import String
-from packML import *
-
 
 class UIPlugin(Plugin):
     '''
@@ -16,7 +14,7 @@ class UIPlugin(Plugin):
     
     '''
     def __init__(self, context):
-        rospy.loginfo("New Version")
+        rospy.loginfo("New New Version")
 
         super(UIPlugin, self).__init__(context)
 #         self.testDataTopic = rospy.get_param("~testData","/fmTest/testData")

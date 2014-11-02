@@ -126,7 +126,7 @@ include_directories(
 # install(PROGRAMS
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+# scfripts)
 
 install(PROGRAMS scripts/rqt_mypkg
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

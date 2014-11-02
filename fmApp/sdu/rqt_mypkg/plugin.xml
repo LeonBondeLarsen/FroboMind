@@ -14,7 +14,7 @@
          		-->
          		<label>Frobit Robot Plugin</label>
          		<icon type="theme">system-help</icon>
-         		<statustip>User Interface</statustip>
+         		<statustip>Frobit User Interface</statustip>
        		</qtgui>
      </class>
 </library>

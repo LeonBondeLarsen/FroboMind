@@ -60,6 +60,9 @@ class WorkerThread(QtCore.QThread):
         self.stopped = True
 
     def guiInit(self,context):
+	'''
+	Initializes the GUI and all the different widgets
+	'''
 #         rospy.loginfo("Worker Thread guiInit() method")
 
         self._widget = QWidget()

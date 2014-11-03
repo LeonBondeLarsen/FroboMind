@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #/****************************************************************************
 # Keyboard mission script
-# Copyright (c) 2013, Kjeld Jensen <kjeld@frobomind.org>
+# Copyright (c) 2013-2014, Kjeld Jensen <kjeld@frobomind.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,23 +30,29 @@
 This mission file provides simple mission handling based on keyboard input
 from the user:
 
-a(uto)   Enter autonomous mode
-m(anual) Enter manual mode
+a(uto)      Enter autonomous mode
+m(anual)    Enter manual mode
 
-e(nable) Enable deadman signal
-Space:   Disable deadman signal
+e(nable)    Enable deadman signal
+Space:      Disable deadman signal
 
 In manual mode
-s(top)   Stop the robot by setting the velocity to zero
+s(top)      Stop the robot by setting the velocity to zero
+Arrows      Set the velocity
 
+In autonomous mode
+Up arrow    Go to the next waypoint
+Down arrow  Go to the previous waypoint
 
 Revision
 2013-11-06 KJ First version
+2014-09-08 KJ Added support for /fmDecision/hmi (previous/next waypoint)
 """
 
 import rospy
 from std_msgs.msg import Bool, Char
 from geometry_msgs.msg import TwistStamped
+from msgs.msg import StringArrayStamped
 
 class mission_node():
 	def __init__(self):
@@ -57,13 +63,21 @@ class mission_node():
 		self.STATE_MANUAL = 1
 		self.state = self.STATE_MANUAL
 
+		# HMI defines
+		self.HMI_ID_DEADMAN = '0'
+		self.HMI_ID_MODE = '1'
+		self.HMI_ID_GOTO_WAYPOINT = '2'
+
+		self.HMI_MODE_MANUAL = '0'
+		self.HMI_MODE_AUTO = '1'
+
 		# keyboard interface
 		self.KEY_ESC = 27
 		self.KEY_SECOND = 91
 		self.KEY_SPACE = 32
 		self.KEY_a = 97
-		self.KEY_m = 109
 		self.KEY_e = 101
+		self.KEY_m = 109
 		self.KEY_s = 115
 		self.KEY_ARROW_UP = 65
 		self.KEY_ARROW_DOWN = 66
@@ -73,6 +87,7 @@ class mission_node():
 		self.second_key = False
 
 		# read parameters
+		self.actuation_requires_user_enable = rospy.get_param("~actuation_requires_user_enable", True)
 		self.vel_lin_max = rospy.get_param("~max_linear_velocity", 0.5) # [m/s]
 		self.vel_ang_max = rospy.get_param("~max_angular_velocity", 0.3) # [rad/s]
 		self.vel_lin_step = rospy.get_param("~linear_velocity_step", 0.1) # [m/s]
@@ -80,18 +95,29 @@ class mission_node():
 
 		# get topic names
 		kbd_topic = rospy.get_param("~keyboard_sub", "/fmHMI/keyboard")
+		hmi_sub_topic = rospy.get_param("~hmi_sub",'/fmDecision/hmi')
 		deadman_topic = rospy.get_param("~deadman_pub", "/fmCommand/deadman")
+		hmi_pub_topic = rospy.get_param("~hmi_pub",'/fmDecision/hmi')
 		automode_topic = rospy.get_param("~automode_pub", "/fmDecision/automode")
 		cmd_vel_topic = rospy.get_param("~cmd_vel_pub", "/fmCommand/cmd_vel")
 
 		# setup deadman publish topic
-		self.deadman_state = False
+		if self.actuation_requires_user_enable == True:
+			self.deadman_state = False
+		else:
+			self.deadman_state = True
+			rospy.logwarn(rospy.get_name() + ": IMPORTANT: Actuation is always enabled")
 		self.deadman_msg = Bool()
 		self.deadman_pub = rospy.Publisher(deadman_topic, Bool)
 
 		# setup automode publish topic
 		self.automode_msg = Bool()
 		self.automode_pub = rospy.Publisher(automode_topic, Bool)
+
+		# setup HMI publish topic
+		self.hmi_msg = StringArrayStamped()
+		self.hmi_msg.data = ['', ''] # initialize string array
+		self.hmi_pub = rospy.Publisher(hmi_pub_topic, StringArrayStamped)
 		
 		# setup manual velocity topic
 		self.vel_lin = 0.0
@@ -101,10 +127,21 @@ class mission_node():
 
 		# setup subscription topic callbacks
 		rospy.Subscriber(kbd_topic, Char, self.on_kbd_topic)
+		rospy.Subscriber(hmi_sub_topic, StringArrayStamped, self.on_hmi_sub_topic)
 
 		# sall updater function
 		self.r = rospy.Rate(self.update_rate)
 		self.updater()
+
+	def set_mode_manual(self):
+		rospy.logwarn(rospy.get_name() + ": Switching to manual mode")
+		self.state = self.STATE_MANUAL
+		self.vel_lin = 0.0
+		self.vel_ang = 0.0
+
+	def set_mode_auto(self):
+		rospy.logwarn(rospy.get_name() + ": Switching to autonomous mode")
+		self.state = self.STATE_AUTO
 
 	def on_kbd_topic(self, msg):
 		if self.esc_key == False:
@@ -113,23 +150,19 @@ class mission_node():
 			elif msg.data == self.KEY_SPACE: # disable actuation
 				self.vel_lin = 0.0
 				self.vel_ang = 0.0	 
-				if self.deadman_state == True:
+				if self.deadman_state == True and self.actuation_requires_user_enable == True:
 					rospy.logwarn(rospy.get_name() + ": Disabling actuation")
 					self.deadman_state = False
 			elif msg.data == self.KEY_e: # enable actuation
-				if self.deadman_state == False:
+				if self.deadman_state == False and self.actuation_requires_user_enable == True:
 					rospy.logwarn(rospy.get_name() + ": Enabling actuation")
 					self.deadman_state = True
 			elif msg.data == self.KEY_a:
 				if self.state == self.STATE_MANUAL:
-					rospy.logwarn(rospy.get_name() + ": Switching to autonomous mode")
-					self.state = self.STATE_AUTO
+					self.set_mode_auto()
 			elif msg.data == self.KEY_m:
 				if self.state == self.STATE_AUTO:
-					rospy.logwarn(rospy.get_name() + ": Switching to manual mode")
-					self.state = self.STATE_MANUAL
-					self.vel_lin = 0.0
-					self.vel_ang = 0.0
+					self.set_mode_manual()
 			elif msg.data == self.KEY_s:
 				if self.state == self.STATE_MANUAL:
 					self.vel_lin = 0.0
@@ -165,6 +198,24 @@ class mission_node():
 						self.vel_lin = 0.0
 					if abs (self.vel_ang) < 0.0001:
 						self.vel_ang = 0.0
+				elif self.state == self.STATE_AUTO:
+					if msg.data == self.KEY_ARROW_UP:
+						self.hmi_msg.header.stamp = rospy.Time.now()
+						self.hmi_msg.data[0] = self.HMI_ID_GOTO_WAYPOINT
+						self.hmi_msg.data[1] = '+'
+						self.hmi_pub.publish (self.hmi_msg)
+					elif msg.data == self.KEY_ARROW_DOWN:
+						self.hmi_msg.header.stamp = rospy.Time.now()
+						self.hmi_msg.data[0] = self.HMI_ID_GOTO_WAYPOINT
+						self.hmi_msg.data[1] = '-'
+						self.hmi_pub.publish (self.hmi_msg)
+
+	def on_hmi_sub_topic(self, msg):
+		if msg.data[0] == self.HMI_ID_MODE:
+			if msg.data[1] == self.HMI_MODE_MANUAL:
+				self.set_mode_manual()
+			elif msg.data[1] == self.HMI_MODE_AUTO:
+				self.set_mode_auto()
 
 	def publish_deadman_message(self):
 		self.deadman_msg = self.deadman_state

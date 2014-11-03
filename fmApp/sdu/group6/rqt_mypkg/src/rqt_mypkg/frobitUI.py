@@ -14,7 +14,6 @@ class UIPlugin(Plugin):
     
     '''
     def __init__(self, context):
-        rospy.loginfo("New Version")
 	
         super(UIPlugin, self).__init__(context)
         
@@ -39,7 +38,6 @@ class WorkerThread(QtCore.QThread):
     The thread which runs the GUI. All the user interactions with the UI are handled in this thread.
     '''
     def __init__(self, name, receiver,context):
-        rospy.loginfo("Worker Thread init() method "+name)
 	output_topic = rospy.get_param("~task_publisher", "/fmDecisionMaking/task")
 	self.pub = rospy.Publisher(output_topic, StringStamped, queue_size=10)
 	self.task_msg = StringStamped()
@@ -100,7 +98,7 @@ class WorkerThread(QtCore.QThread):
     
     # Event Handlers
     def startButtonClicked(self):
-        rospy.loginfo(rospy.get_name() + ": Task 1 selected")
+        rospy.loginfo(": Task 1 selected")
 	self.task_msg.data = 'JOB1'
 	self.pub.publish(self.task_msg)
         
@@ -108,7 +106,7 @@ class WorkerThread(QtCore.QThread):
         print("Stop Button Clicked")
     
     def turnrightButtonClicked(self):
-        rospy.loginfo(rospy.get_name() + ": Task 2 selected")
+        rospy.loginfo(": Task 2 selected")
 	self.task_msg.data = 'JOB2'
 	self.pub.publish(self.task_msg)
     
@@ -119,7 +117,7 @@ class WorkerThread(QtCore.QThread):
         print("Auto Mode Button Clicked")
         
     def manualModeButtonClicked(self):
-	rospy.loginfo(rospy.get_name() + ": Manual mode selected")
+	rospy.loginfo(": Manual mode selected")
 	self.task_msg.data = 'IDLE'
 	self.pub.publish(self.task_msg)
         

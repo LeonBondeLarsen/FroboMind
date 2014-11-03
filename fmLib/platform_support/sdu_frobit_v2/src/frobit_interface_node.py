@@ -32,6 +32,8 @@
 2014-04-17 KJ Migrated from Cetus FroboScout to SDU Frobit V2 Interface
 2014-05-04 KJ Added seperate PID parameters for driving and turning about own
               center.
+2014-08-21 KJ Added supply_voltage_scale_factor parameter to support the
+              FroboMind Controller
 """
 
 # imports
@@ -68,12 +70,16 @@ class FrobitInterfaceNode():
 		# variables
 		self.frobit_state = 0
 		self.frobit_state_prev = -1
+<<<<<<< HEAD
         
 		# Leon 22/10-2014 changed: 
 		#self.frobit_voltage_conv = 5.0*(1800.0 + 700.0)/(700.0*1023.0) #(voltage divider 1800/700 ohm)
 		# to
 		self.frobit_voltage_conv = rospy.get_param("~supply_voltage_scale_factor", 0.03747)
         
+=======
+		self.robocard_voltage_divider = 0.03747 # 5.0*(22000 + 3300)/(3300*1023) because of 22000/3300 ohm v-divider
+>>>>>>> a322957598edf19a1132060b88c6212aebd5da26
 		self.frobit_voltage_ok = False
 		self.frobit_volt = 0.0
 		self.send_cfg_tout = 0.0
@@ -97,6 +103,7 @@ class FrobitInterfaceNode():
 		self.w_turn_ki = rospy.get_param("~wheel_turn_ki", 0.0)
 		self.w_turn_kd = rospy.get_param("~wheel_turn_kd", 0.0)
 		self.w_turn_max_int_output = rospy.get_param("~wheel_turn_max_integral_output", 0.0)
+		self.supply_voltage_scale_factor = rospy.get_param("~supply_voltage_scale_factor", self.robocard_voltage_divider)
 		self.min_supply_voltage = rospy.get_param("~min_supply_voltage", 12.0)
 
 		pub_status_rate = rospy.get_param("~publish_wheel_status_rate", 5)
@@ -314,7 +321,7 @@ class FrobitInterfaceNode():
 				self.enc_r_buf.append (er)
 				del self.enc_r_buf[0]
 
-				self.frobit_volt = int(msg.data[3])*self.frobit_voltage_conv
+				self.frobit_volt = int(msg.data[3])*self.supply_voltage_scale_factor
 				if self.pub_fb_interval != 0:
 					self.wl_fb_thrust = int(msg.data[4])
 					self.wr_fb_thrust = int(msg.data[5])
@@ -334,7 +341,34 @@ class FrobitInterfaceNode():
 				if self.frobit_state == self.STATE_ERR_NO_CONFIG: # wheel module not configured since reset?
 					self.publish_configuration_messages()
 			elif msg.type == 'PFBHI':
-				rospy.logwarn (rospy.get_name() + ': Frobit says: Reset')
+				if msg.data[0] == '1':
+					hardware_type = 'RoboCard'
+				elif msg.data[0] == '2':
+					hardware_type = 'FroboMind Controller'
+				else:
+					hardware_type = 'Unknown hardware'
+
+				if msg.length >= 4:
+					software_ver = msg.data[1] + '.' + msg.data[2]
+
+					if msg.data[3] == '0':
+						reset_cause = 'Power on reset'
+					elif msg.data[3] == '1':
+						reset_cause = 'Reset'
+					elif msg.data[3] == '2':
+						reset_cause = 'Brown-out reset'
+					elif msg.data[3] == '3':
+						reset_cause = 'Watchdog reset'
+					elif msg.data[3] == '4':
+						reset_cause = 'JTAG reset'
+					else:
+						reset_cause = 'Unknown reset'
+				else:
+					reset_cause = 'Unknown reset'
+					software_ver = msg.data[1]
+
+				rospy.logwarn (rospy.get_name() + ': Frobit says: %s' % (reset_cause))
+				rospy.loginfo (rospy.get_name() + ': Frobit says: %s with firmware %s detected' % (hardware_type, software_ver))
 
 	def publish_enc_messages(self):
 		self.intstamp.header.stamp = rospy.Time.now()
@@ -412,7 +446,7 @@ class FrobitInterfaceNode():
 			nmea_sys_par.header.stamp = rospy.Time.now()
 			nmea_sys_par.type = 'PFBSP'
 			nmea_sys_par.length = 1
-			nmea_sys_par.data.append('%d' % (self.min_supply_voltage/self.frobit_voltage_conv + 0.5)) 
+			nmea_sys_par.data.append('%d' % (self.min_supply_voltage/self.supply_voltage_scale_factor + 0.5)) 
 			self.frobit_pub.publish (nmea_sys_par)
 			self.publish_pid_drive_param_message()
 			rospy.loginfo (rospy.get_name() + ': Sending configuration to Frobit')

@@ -15,12 +15,9 @@ class UIPlugin(Plugin):
     '''
     def __init__(self, context):
         rospy.loginfo("New Version")
-
+	
         super(UIPlugin, self).__init__(context)
-#         self.testDataTopic = rospy.get_param("~testData","/fmTest/testData")
-#         rospy.Subscriber(self.testDataTopic,String,self.on_testData)
-#         self.frobitUI_data = rospy.get_param("~frobitUIData",'/frobitUI/pub')
-#         self.pub = rospy.Publisher(self.frobitUI_data,String)
+        
         self.setObjectName('MyPlugin')  
         
         self.threads = []
@@ -28,10 +25,6 @@ class UIPlugin(Plugin):
         t = WorkerThread(name, self,context)
         t.start()
         self.threads.append(t)
-#        
-      
-    def on_testData(self,msg):
-        rospy.loginfo("Message received is "+msg.data)
   
     def __del__(self):
         for t in self.threads:
@@ -47,8 +40,10 @@ class WorkerThread(QtCore.QThread):
     '''
     def __init__(self, name, receiver,context):
         rospy.loginfo("Worker Thread init() method "+name)
-        self.frobitUI_data = rospy.get_param("~frobitUIData",'/frobitUI/pub')
-        self.pub = rospy.Publisher(self.frobitUI_data,String)
+	output_topic = rospy.get_param("~task_publisher", "/fmDecisionMaking/task")
+	self.pub = rospy.Publisher(output_topic, StringStamped, queue_size=10)
+	self.task_msg = StringStamped()
+
         QtCore.QThread.__init__(self)
         self.name = name
         self.context = context
@@ -97,9 +92,7 @@ class WorkerThread(QtCore.QThread):
         
     
     def guiWork(self):
-        print("New Version")
         while not rospy.is_shutdown():
-            self.pub.publish("RSD Project")        
             rospy.sleep(10)
 
        
@@ -107,14 +100,17 @@ class WorkerThread(QtCore.QThread):
     
     # Event Handlers
     def startButtonClicked(self):
-        print("Start Button Clicked")  
-#         self.speedValue.setText("23")        
+        rospy.loginfo(rospy.get_name() + ": Task 1 selected")
+	self.task_msg.data = 'JOB1'
+	self.pub.publish(self.task_msg)
         
     def stopButtonClicked(self):   
         print("Stop Button Clicked")
     
     def turnrightButtonClicked(self):
-        print("Turn Right Button Clicked")
+        rospy.loginfo(rospy.get_name() + ": Task 2 selected")
+	self.task_msg.data = 'JOB2'
+	self.pub.publish(self.task_msg)
     
     def turnleftButtonClicked(self):
         print("Turn Left Button Clicked")
@@ -123,7 +119,9 @@ class WorkerThread(QtCore.QThread):
         print("Auto Mode Button Clicked")
         
     def manualModeButtonClicked(self):
-        print("Manual Mode Button Clicked")
+	rospy.loginfo(rospy.get_name() + ": Manual mode selected")
+	self.task_msg.data = 'IDLE'
+	self.pub.publish(self.task_msg)
         
         
         

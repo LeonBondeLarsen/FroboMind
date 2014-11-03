@@ -99,9 +99,9 @@ class WorkerThread(QtCore.QThread):
     def guiWork(self):
         print("New Version")
         while not rospy.is_shutdown():
-            self.pub.publish("RSD")        
+            self.pub.publish("RSD Project")        
             rospy.sleep(10)
-            PackML()# use smach to implement the state pattern
+
        
         
     

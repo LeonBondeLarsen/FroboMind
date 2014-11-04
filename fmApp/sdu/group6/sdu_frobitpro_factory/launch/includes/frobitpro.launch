@@ -1,5 +1,5 @@
 <launch>
-	<!-- TF: robot is base. Encoder + Imu are fused to tf from world to base -->
+	<!-- TF: robot is base. Encoder + Imu are fused to tf from world_ to base. Encoder + Imu + GPS are fused to tf from world to base -->
 
 	<param name="diff_steer_wheel_distance" value="0.19"/>
 	<param name="ticks_per_meter_left" value="710" />
@@ -25,15 +25,15 @@
 	        <param name="imu_sub" value="/fmInformation/imu" />
 	        <param name="odom_reset_sub" value="/fmInformation/odometry_reset" />
 	        <param name="odom_pub" value="/fmKnowledge/odometry" />
-	        <param name="odom_estimate_frame" value="world" />
-	        <param name="vehicle_frame" value="base" />
+	        <param name="odom_estimate_frame" value="world_" />
+	        <param name="vehicle_frame" value="base_" />
 	        <param name="encoder_output" value="absolute" />
 	        <param name="max_ticks_per_update" value="200" />
 	        <param name="yaw_angle_source" value="imu_angular_velocity" />
 	        <param name="imu_angular_velocity_yaw_axis" value="z" />
 		</node>
 
-		<!--node pkg="odometry_gnss_pose_estimator" name="pose_estimator" type="pose_estimator_node.py" output="screen" >
+		<node pkg="odometry_gnss_pose_estimator" name="pose_estimator" type="pose_estimator_node.py" output="screen" >
 			<param name="odom_sub" value="/fmKnowledge/odometry" />
 			<param name="imu_sub" value="/fmInformation/imu" />
 			<param name="gga_sub" value="/fmInformation/gpgga_tranmerc" />
@@ -47,7 +47,9 @@
 			<param name="odometry_angular_variance" value="0.000001" /> 
 			<param name="gnss_angular_variance" value="0.0001" />
 			<param name="solution_required" value="0" />
-		</node-->
+			<param name="frame_id" value="base" />
+			<param name="child_frame_id" value="world" />
+		</node>
 	</group>
 	
 	<group ns="fmLib">
@@ -100,6 +102,9 @@
             <param name="baudrate" value="115200" />
             <param name="termination_character" value="10"/>
         </node>
+		<node pkg="socket_tranmerc" type="tcp_client.py" name="marker_locator_tcp_client">
+			<param name="order" value="7" />
+		</node>
 	</group>	
 </launch>
 

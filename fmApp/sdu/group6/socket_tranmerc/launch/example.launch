@@ -1,0 +1,11 @@
+<launch>
+
+	<group ns="fmLib">
+		<node pkg="socket_tranmerc" type="tcp_client.py" name="marker_locator_tcp_client">
+			<param name="order" value="7" />
+		</node>
+
+	</group>
+
+
+</launch>

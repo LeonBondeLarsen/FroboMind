@@ -6,51 +6,285 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>168</width>
-    <height>219</height>
+    <width>573</width>
+    <height>425</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="buttonIdle">
+   <widget class="QPushButton" name="commandWait">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>20</y>
-      <width>111</width>
+      <x>290</x>
+      <y>270</y>
+      <width>271</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>Idle</string>
+     <string>COMMAND_WAIT</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="buttonExecuteJob1">
+   <widget class="QPushButton" name="commandNavigateDispenser">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>10</x>
       <y>60</y>
-      <width>111</width>
+      <width>271</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>Execute job 1</string>
+     <string>COMMAND_NAVIGATE Dispenser</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="buttonExecuteJob2">
+   <widget class="QPushButton" name="commandNavigateInBox">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>100</y>
-      <width>111</width>
+      <x>10</x>
+      <y>90</y>
+      <width>271</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>Execute job 2</string>
+     <string>COMMAND_NAVIGATE InBox</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateStation2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>150</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE Station2</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateStation3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>180</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE Station3</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateStation1">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>120</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE Station1</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateRampIn">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>240</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE RampIn</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateFloorOut">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>270</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE FloorOut</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateRampOut">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>210</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE RampOut</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateFloorIn">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>300</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE FloorIn</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateLine">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>330</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE Line</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateLoadOn1">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>90</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE LoadOn1</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateLoadOff1">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>60</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE LoadOff1</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateLoadOn2">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>150</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE LoadOn2</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateLoadOff2">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>120</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE LoadOff2</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateLoadOff3">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>180</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE LoadOff3</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandNavigateLoadOn3">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>210</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_NAVIGATE LoadOn3</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandTip">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>240</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_TIP</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="commandAbort">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>300</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>COMMAND_ABORT</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="manualMode">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>330</y>
+      <width>271</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Manal mode</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="robotStateFeedback">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>0</y>
+      <width>521</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Robot state</string>
     </property>
    </widget>
   </widget>
@@ -59,7 +293,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>168</width>
+     <width>573</width>
      <height>25</height>
     </rect>
    </property>

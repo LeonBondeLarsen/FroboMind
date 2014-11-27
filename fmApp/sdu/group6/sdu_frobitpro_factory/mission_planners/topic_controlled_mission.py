@@ -34,10 +34,10 @@ from msgs.msg import StringStamped
 class TaskController(smach.State):
     """
     """
-    def __init__(self, name):
-        smach.State.__init__(self, outcomes=['IDLE','JOB1','JOB2'])
+    def __init__(self, name, task_list):
+        smach.State.__init__(self, outcomes=task_list)
         self.name = name
-        self.current_task = 'IDLE'
+        self.current_task = 'MANUAL'
         self.r = rospy.Rate(10)
         self.subscriber = rospy.Subscriber('/fmDecisionMaking/task', StringStamped, self.onTaskMessage )
         
@@ -67,69 +67,138 @@ class Mission():
     def __init__(self):
         rospy.init_node('mission_control')
         rospy.loginfo(rospy.get_name() + ": Mission control Initialised")
-        self.task_list = ['IDLE', 'JOB1', 'JOB2']
-        self.task_transitions = {'IDLE':'IDLE', 'JOB1':'JOB1', 'JOB2':'JOB2'}
         
-        self.job1_waypoints = [[3,0],[3,-3],[0,-3],[0,0]]
-        self.job2_waypoints = [[0,0],[0,-3],[3,-3],[3,0]]
+        self.task_list = [
+                            'MANUAL',
+                            'WAIT',
+           #                 'ABORT',
+           #                 'TIP',
+                            'NAVIGATE_DISPENSER',
+           #                 'NAVIGATE_IN_BOX',
+                            'NAVIGATE_LINE'
+           #                 'NAVIGATE_STATION_1',
+           #                 'NAVIGATE_STATION_2',
+           #                 'NAVIGATE_STATION_3',
+           #                 'NAVIGATE_RAMP_IN',
+           #                 'NAVIGATE_RAMP_OUT',
+           #                 'NAVIGATE_FLOOR_IN',
+           #                 'NAVIGATE_FLOOR_OUT',
+           #                 'NAVIGATE_LOAD_ON_1',
+           #                 'NAVIGATE_LOAD_OFF_1',
+           #                 'NAVIGATE_LOAD_ON_2',
+           #                 'NAVIGATE_LOAD_OFF_2',
+           #                 'NAVIGATE_LOAD_ON_3',
+           #                 'NAVIGATE_LOAD_OFF_3'
+                          ]
+        self.task_transitions = {
+                            'MANUAL':'MANUAL',
+                            'WAIT':'WAIT',
+           #                 'ABORT':'ABORT',
+           #                 'TIP':'TIP',
+                            'NAVIGATE_DISPENSER':'NAVIGATE_DISPENSER',
+           #                 'NAVIGATE_IN_BOX':'NAVIGATE_IN_BOX',
+                            'NAVIGATE_LINE':'NAVIGATE_LINE'
+           #                 'NAVIGATE_STATION_1':'NAVIGATE_STATION_1',
+           #                 'NAVIGATE_STATION_2':'NAVIGATE_STATION_2',
+           #                 'NAVIGATE_STATION_3':'NAVIGATE_STATION_3',
+           #                 'NAVIGATE_RAMP_IN':'NAVIGATE_RAMP_IN',
+           #                 'NAVIGATE_RAMP_OUT':'NAVIGATE_RAMP_OUT',
+           #                 'NAVIGATE_FLOOR_IN':'NAVIGATE_FLOOR_IN',
+           #                 'NAVIGATE_FLOOR_OUT':'NAVIGATE_FLOOR_OUT',
+           #                 'NAVIGATE_LOAD_ON_1':'NAVIGATE_LOAD_ON_1',
+           #                 'NAVIGATE_LOAD_OFF_1':'NAVIGATE_LOAD_OFF_1',
+           #                 'NAVIGATE_LOAD_ON_2':'NAVIGATE_LOAD_ON_2',
+           #                 'NAVIGATE_LOAD_OFF_2':'NAVIGATE_LOAD_OFF_2',
+           #                 'NAVIGATE_LOAD_ON_3':'NAVIGATE_LOAD_ON_3',
+           #                 'NAVIGATE_LOAD_OFF_3':'NAVIGATE_LOAD_OFF_3'
+                            }
+        
+        self.dispenser_waypoints = [[3,0],[3,-3],[0,-3],[0,0]]
+        self.line_waypoints = [[0,0],[0,-3],[3,-3],[3,0]]
+        
+        self.feedback_timer = rospy.Timer(rospy.Duration(2.0), self.onTimer)
+        self.feedback_publisher = rospy.Publisher('/fmInformation/state', StringStamped, queue_size=10)
+        self.feedback_message = StringStamped()
           
     def build(self):
         autonomous1 = smach.Concurrence(  outcomes = ['exitAutomode'],
                                          default_outcome = 'exitAutomode',
-                                         outcome_map = {'exitAutomode':{'JOB1/SAFETY':'preempted','JOB1/DEADMAN':'preempted'}},
+                                         outcome_map = {'exitAutomode':{'NAVIGATE_DISPENSER/SAFETY':'preempted','NAVIGATE_DISPENSER/DEADMAN':'preempted'}},
                                          child_termination_cb = onPreempt)
 
         with autonomous1:
-            smach.Concurrence.add('JOB1/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('JOB1',self.job1_waypoints).safety_sm)
-            smach.Concurrence.add('JOB1/DEADMAN', publish_deadman.publishDeadmanState() )
+            smach.Concurrence.add('NAVIGATE_DISPENSER/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_DISPENSER',self.dispenser_waypoints).safety_sm)
+            smach.Concurrence.add('NAVIGATE_DISPENSER/DEADMAN', publish_deadman.publishDeadmanState() )
             
         ##################
         
         autonomous2 = smach.Concurrence(  outcomes = ['exitAutomode'],
                                          default_outcome = 'exitAutomode',
-                                         outcome_map = {'exitAutomode':{'JOB2/SAFETY':'preempted','JOB2/DEADMAN':'preempted'}},
+                                         outcome_map = {'exitAutomode':{'NAVIGATE_LINE/SAFETY':'preempted','NAVIGATE_LINE/DEADMAN':'preempted'}},
                                          child_termination_cb = onPreempt)
 
         with autonomous2:
-            smach.Concurrence.add('JOB2/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('JOB2',self.job2_waypoints).safety_sm)
-            smach.Concurrence.add('JOB2/DEADMAN', publish_deadman.publishDeadmanState() )
+            smach.Concurrence.add('NAVIGATE_LINE/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_LINE',self.line_waypoints).safety_sm)
+            smach.Concurrence.add('NAVIGATE_LINE/DEADMAN', publish_deadman.publishDeadmanState() )
             
         ##################
                     
-        idle = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'IDLE',
-                                         outcome_map = {'IDLE':{'IDLE_CONTROL':'IDLE'},'JOB1':{'IDLE_CONTROL':'JOB1'},'JOB2':{'IDLE_CONTROL':'JOB2'}},
+        manual = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'MANUAL',
+                                         outcome_map = {'MANUAL':{'MANUAL':'MANUAL'},
+                                                        'WAIT':{'MANUAL':'WAIT'},
+                                                        'NAVIGATE_DISPENSER':{'MANUAL':'NAVIGATE_DISPENSER'},
+                                                        'NAVIGATE_LINE':{'MANUAL':'NAVIGATE_LINE'}
+                                                        },
                                          child_termination_cb = onPreempt)
-        with idle:
-            smach.Concurrence.add('IDLE_CONTROL', TaskController('IDLE'))
+        with manual:
+            smach.Concurrence.add('MANUAL', TaskController('MANUAL',self.task_list))
             
         ##################
                     
-        task1 = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'IDLE',
-                                         outcome_map = {'IDLE':{'JOB1/CONTROL':'IDLE'},'JOB1':{'JOB1/CONTROL':'JOB1'},'JOB2':{'JOB1/CONTROL':'JOB2'}},
+        wait = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'WAIT',
+                                         outcome_map = {'MANUAL':{'WAIT':'MANUAL'},
+                                                        'WAIT':{'WAIT':'WAIT'},
+                                                        'NAVIGATE_DISPENSER':{'WAIT':'NAVIGATE_DISPENSER'},
+                                                        'NAVIGATE_LINE':{'WAIT':'NAVIGATE_LINE'}
+                                                        },
                                          child_termination_cb = onPreempt)
-        with task1:
-            smach.Concurrence.add('JOB1/CONTROL', TaskController('JOB1'))
-            smach.Concurrence.add('JOB1/TASK', autonomous1)
+        with wait:
+            smach.Concurrence.add('WAIT', TaskController('WAIT',self.task_list))
             
         ##################
                     
-        task2 = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'IDLE',
-                                         outcome_map = {'IDLE':{'JOB2/CONTROL':'IDLE'},'JOB1':{'JOB2/CONTROL':'JOB1'},'JOB2':{'JOB2/CONTROL':'JOB2'}},
+        navigate_dispenser = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'WAIT',
+                                         outcome_map = {'MANUAL':{'NAVIGATE_DISPENSER/CONTROL':'MANUAL'},
+                                                        'WAIT':{'NAVIGATE_DISPENSER/CONTROL':'WAIT'},
+                                                        'NAVIGATE_DISPENSER':{'NAVIGATE_DISPENSER/CONTROL':'NAVIGATE_DISPENSER'},
+                                                        'NAVIGATE_LINE':{'NAVIGATE_DISPENSER/CONTROL':'NAVIGATE_LINE'}},
                                          child_termination_cb = onPreempt)
-        with task2:
-            smach.Concurrence.add('JOB2/CONTROL', TaskController('JOB2'))
-            smach.Concurrence.add('JOB2/TASK', autonomous2)            
+        with navigate_dispenser:
+            smach.Concurrence.add('NAVIGATE_DISPENSER/CONTROL', TaskController('NAVIGATE_DISPENSER',self.task_list))
+            smach.Concurrence.add('NAVIGATE_DISPENSER/TASK', autonomous1)
+            
+        ##################
+                    
+        navigate_line = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'WAIT',
+                                         outcome_map = {'WAIT':{'NAVIGATE_LINE/CONTROL':'WAIT'},
+                                                        'NAVIGATE_DISPENSER':{'NAVIGATE_LINE/CONTROL':'NAVIGATE_DISPENSER'},
+                                                        'NAVIGATE_LINE':{'NAVIGATE_LINE/CONTROL':'NAVIGATE_LINE'}},
+                                         child_termination_cb = onPreempt)
+        with navigate_line:
+            smach.Concurrence.add('NAVIGATE_LINE/CONTROL', TaskController('NAVIGATE_LINE',self.task_list))
+            smach.Concurrence.add('NAVIGATE_LINE/TASK', autonomous2)            
             
         ##################
         
-        mission_control = smach.StateMachine(outcomes= [])      
+        self.mission_control = smach.StateMachine(outcomes= [])      
               
-        with mission_control:
-            smach.StateMachine.add('IDLE', idle, transitions=self.task_transitions)
-            smach.StateMachine.add('JOB1', task1, transitions=self.task_transitions)
-            smach.StateMachine.add('JOB2', task2, transitions=self.task_transitions)
+        with self.mission_control:
+            smach.StateMachine.add('MANUAL', manual, transitions=self.task_transitions)
+            smach.StateMachine.add('WAIT', wait, transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_DISPENSER', navigate_dispenser, transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LINE', navigate_line, transitions=self.task_transitions)
 
-        return mission_control
+        return self.mission_control
                        
     def spin(self):    
         self.sm = self.build()   
@@ -143,6 +212,11 @@ class Mission():
 
     def onButtonA(self):
         rospy.loginfo("A pressed")
+        
+    def onTimer(self, event):
+        self.feedback_message.header.stamp = rospy.Time.now()
+        self.feedback_message.data = str( self.mission_control.get_active_states() )
+        self.feedback_publisher.publish(self.feedback_message)
 
 
 def onPreempt(outcome_map):

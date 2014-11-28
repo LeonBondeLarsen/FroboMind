@@ -10,7 +10,7 @@
 	</group>
 	
 	<group ns="fmDecisionMakers">
-		<node pkg="sdu_armadillo4_2014-10-14" name="mission" type="mission.py" output="screen">
+		<node pkg="sdu_frobitpro_factory" name="mission" type="forward_n_metres.py" output="screen">
 		    <param name="deadman_topic" value="/fmCommand/deadman" />
 			<param name="cmd_vel_topic" value="/fmCommand/cmd_vel" />
 			<param name="odom_topic" value="fmKonowledge/pose" />

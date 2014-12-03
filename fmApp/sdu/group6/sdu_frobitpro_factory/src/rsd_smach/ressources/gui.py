@@ -133,6 +133,6 @@ class Ui_MainWindow(object):
         self.commandNavigateLoadOn3.setText(_translate("MainWindow", "COMMAND_NAVIGATE LoadOn3", None))
         self.commandTip.setText(_translate("MainWindow", "COMMAND_TIP", None))
         self.commandAbort.setText(_translate("MainWindow", "COMMAND_ABORT", None))
-        self.manualMode.setText(_translate("MainWindow", "Manal mode", None))
+        self.manualMode.setText(_translate("MainWindow", "Manual mode", None))
         self.menuRSD_User_Interface.setTitle(_translate("MainWindow", "RSD User Interface", None))
 

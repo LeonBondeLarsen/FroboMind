@@ -31,11 +31,10 @@ import smach
 import smach_ros
 import actionlib
 import threading
-#from wii_interface import wii_interface 
-#from gamepad_interface import gamepad_interface 
-from gui_interface import gui_interface 
+from wii_interface import wii_interface 
+#from gamepad_interface import gamepad_interface  
 from rsd_smach.behaviours import safe_wpt_navigation
-from rsd_smach.states import gui_states
+#from rsd_smach.states import gui_states
 from generic_smach.states import joy_states
 from nav_msgs.msg import Odometry    
 from std_msgs.msg import Float64
@@ -52,6 +51,8 @@ class Mission():
         #self.hmi = gamepad_interface.GamepadInterface()
 
         self.hmi.register_callback_button_A(self.onButtonA)
+        
+        self.square_waypoints = [[1,0],[1,-1],[0,-1],[0,0]]
           
     def build(self):
         # Build the autonomous state as concurrence between wiimote and measuring behaviour to allow user preemption
@@ -62,7 +63,7 @@ class Mission():
 
         with autonomous:
             smach.Concurrence.add('HMI', joy_states.interfaceState(self.hmi))
-            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.build())
+            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_DISPENSER',self.square_waypoints).safety_sm)
 
         
         # Build the top level mission control from the remote control state and the autonomous state

@@ -16,6 +16,17 @@
 			<param name="covariance_y" value="0.001"/>
 			<param name="covariance_z" value="0.001"/>
 		 </node>
+		 
+		  <node name="sick_tim310" pkg="sick_tim" type="sick_tim310s01" respawn="false" output="screen">
+		      <param name="min_ang" type="double" value="-2.35619449019" />
+		      <param name="max_ang" type="double" value="2.35619449019" />
+		      <param name="intensity" type="bool" value="True" />
+		      <param name="skip" type="int" value="0" />
+		      <param name="frame_id" type="str" value="laser" />
+		      <param name="time_offset" type="double" value="-0.001" />
+		      <param name="publish_datagram" type="bool" value="False" />
+		  </node>
+
 	</group>	
 
 	<group ns="fmProcessors">
@@ -23,6 +34,8 @@
 	        <param name="enc_left_sub" value="/fmInformation/encoder_left" />
 	        <param name="enc_right_sub" value="/fmInformation/encoder_right" />
 	        <param name="imu_sub" value="/fmInformation/imu" />
+	        <param name="line_pose_sub" value="/fmInformation/line_pose" />
+	        <param name="marker_pose_sub" value="/fmInformation/marker_pose" />
 	        <param name="odom_reset_sub" value="/fmInformation/odometry_reset" />
 	        <param name="odom_pub" value="/fmKnowledge/odometry" />
 	        <param name="odom_estimate_frame" value="world_" />
@@ -33,20 +46,23 @@
 	        <param name="imu_angular_velocity_yaw_axis" value="z" />
 		</node>
 
-		<node pkg="odometry_gnss_pose_estimator" name="pose_estimator" type="pose_estimator_node.py" output="screen" >
+		<node pkg="pose_estimator" name="pose_estimator" type="pose_estimator_node.py" output="screen" >
 			<param name="odom_sub" value="/fmKnowledge/odometry" />
 			<param name="imu_sub" value="/fmInformation/imu" />
-			<param name="gga_sub" value="/fmInformation/gpgga_tranmerc" />
+			
+			<param name="line_pose_sub" value="/fmInformation/line_pose" />
+			<param name="lrs_pose_sub" value="/fmInformation/lrs_pose" />
+			<param name="marker_pose_sub" value="/fmInformation/marker_pose" />
+
 			<param name="pose_pub" value="/fmKnowledge/pose" />
-			<param name="pose_status_pub" value="/fmKnowledge/pose_status" />
+
 			<param name="odometry_timeout" value="0.5" /> 
 			<param name="gnss_timeout" value="1.0" /> 
 			<param name="imu_timeout" value="0.5" />
-			<param name="absolute_orientation_timeout" value="30" />
+
 			<param name="odometry_distance_variance" value="0.000001" />
 			<param name="odometry_angular_variance" value="0.000001" /> 
 			<param name="gnss_angular_variance" value="0.0001" />
-			<param name="solution_required" value="0" />
 			<param name="frame_id" value="base" />
 			<param name="child_frame_id" value="world" />
 		</node>
@@ -102,8 +118,10 @@
             <param name="baudrate" value="115200" />
             <param name="termination_character" value="10"/>
         </node>
-		<node pkg="socket_tranmerc" type="tcp_client.py" name="marker_locator_tcp_client">
+        
+		<node pkg="socket_pose" type="tcp_client.py" name="marker_locator_tcp_client" output="screen">
 			<param name="order" value="7" />
+			<param name="odom_pub" value="/fmInformation/marker_pose" />
 		</node>
 	</group>	
 </launch>

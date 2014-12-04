@@ -1,6 +1,7 @@
 # Define the goal
 float64 x
 float64 y
+bool reverse
 ---
 # Define the result
 

@@ -9,7 +9,7 @@ from position_action_server.msg import *
 from std_msgs.msg import Bool
 
 class SafeWaypointNavigation():
-    def __init__(self, parent, wpt):
+    def __init__(self, parent, wpt, reverse):
         self.parent = parent
         
         self.navigation_sm = smach.Concurrence (outcomes = ['proximityAlert','preempted'], 
@@ -19,7 +19,7 @@ class SafeWaypointNavigation():
                                                                'preempted':{self.parent+'/PROXIMITY_MONITOR':'valid'}},
                                                 child_termination_cb = self.onPreempt)
         with self.navigation_sm:
-            smach.Concurrence.add(self.parent+'/FOLLOW_ROUTE', follow_route.build(self.parent, wpt))
+            smach.Concurrence.add(self.parent+'/FOLLOW_ROUTE', follow_route.build(self.parent, wpt, reverse))
             smach.Concurrence.add(self.parent+'/PROXIMITY_MONITOR', smach_ros.MonitorState("/fmKnowledge/proximity_ok",Bool, self.proximity_monitor_cb))    
             
                     

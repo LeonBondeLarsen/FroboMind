@@ -104,6 +104,7 @@ class PositionPlanner():
         
         # Init controller
         self.corrected = False
+        self.reverse_direction = False
         self.rate = rospy.Rate(1/self.period)
         self.twist = TwistStamped()
         self.destination = Vector(0,0)
@@ -118,6 +119,7 @@ class PositionPlanner():
         # Construct a vector from position goal
         self.destination[0] = goal.x
         self.destination[1] = goal.y  
+        self.reverse_direction = goal.reverse
         rospy.loginfo(rospy.get_name() + "Received goal: (%f,%f) ",goal.x,goal.y)
         self.corrected = False
         
@@ -187,6 +189,9 @@ class PositionPlanner():
             # Construct heading vector
             head = Vector(math.cos(yaw), math.sin(yaw))
             
+            if self.reverse_direction :
+                head = head.rotate(math.pi)            
+                
             # Calculate angle between heading vector and target path vector
             self.angle_error = head.angle(target_path)
     
@@ -255,11 +260,16 @@ class PositionPlanner():
                 self.twist.twist.angular.z = self.max_angular_velocity
             if self.twist.twist.angular.z < -self.max_angular_velocity:
                 self.twist.twist.angular.z = -self.max_angular_velocity
+
             
             # Prohibit reverse driving
             if self.twist.twist.linear.x < 0:
                 self.twist.twist.linear.x = 0
-                
+            
+            # ...unless intended
+            if self.reverse_direction:
+                self.twist.twist.linear.x *= -1
+            
             # If not preempted, add a time stamp and publish the twist
             if not self.isPreemptRequested() :     
                 self.twist.header.stamp = rospy.Time.now()               

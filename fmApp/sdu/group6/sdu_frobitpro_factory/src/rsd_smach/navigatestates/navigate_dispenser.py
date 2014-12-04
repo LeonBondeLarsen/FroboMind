@@ -14,7 +14,7 @@ def build(task_list, onPreempt):
                                     child_termination_cb = onPreempt)
 
     with autonomous:
-        smach.Concurrence.add('NAVIGATE_DISPENSER/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_DISPENSER', waypoints).safety_sm)
+        smach.Concurrence.add('NAVIGATE_DISPENSER/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_DISPENSER', waypoints, reverse=False).safety_sm)
         smach.Concurrence.add('NAVIGATE_DISPENSER/DEADMAN', publish_deadman.publishDeadmanState() )
     ##################
 

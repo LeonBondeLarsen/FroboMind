@@ -63,7 +63,7 @@ class Mission():
 
         with autonomous:
             smach.Concurrence.add('HMI', joy_states.interfaceState(self.hmi))
-            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_DISPENSER',self.square_waypoints).safety_sm)
+            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_DISPENSER',self.square_waypoints,reverse=False).safety_sm)
 
         
         # Build the top level mission control from the remote control state and the autonomous state

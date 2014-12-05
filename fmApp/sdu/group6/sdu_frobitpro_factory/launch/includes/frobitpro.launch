@@ -27,6 +27,10 @@
 		      <param name="publish_datagram" type="bool" value="False" />
 		  </node>
 
+		<node pkg="line_detector" name="line_detection_node"  type="line_detector.py" output="screen"  respawn="true">
+			<param name="pose_pub" value="/fmInformation/line_pose"/>
+		 </node>
+		 
 	</group>	
 
 	<group ns="fmProcessors">

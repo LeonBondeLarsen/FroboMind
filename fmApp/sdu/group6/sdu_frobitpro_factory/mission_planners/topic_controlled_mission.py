@@ -27,7 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #****************************************************************************/
 import rospy, smach, smach_ros, actionlib, threading
-from rsd_smach.navigatestates import navigate_in_box, navigate_line, navigate_dispenser
+from rsd_smach.navigatestates import navigate_states
 from rsd_smach.states import task_controller
 from msgs.msg import StringStamped
     
@@ -46,20 +46,20 @@ class Mission():
            #                 'TIP',
                             'NAVIGATE_DISPENSER',
                             'NAVIGATE_IN_BOX',
-                            'NAVIGATE_LINE'
-           #                 'NAVIGATE_STATION_1',
-           #                 'NAVIGATE_STATION_2',
-           #                 'NAVIGATE_STATION_3',
-           #                 'NAVIGATE_RAMP_IN',
-           #                 'NAVIGATE_RAMP_OUT',
-           #                 'NAVIGATE_FLOOR_IN',
-           #                 'NAVIGATE_FLOOR_OUT',
-           #                 'NAVIGATE_LOAD_ON_1',
-           #                 'NAVIGATE_LOAD_OFF_1',
-           #                 'NAVIGATE_LOAD_ON_2',
-           #                 'NAVIGATE_LOAD_OFF_2',
-           #                 'NAVIGATE_LOAD_ON_3',
-           #                 'NAVIGATE_LOAD_OFF_3'
+                            'NAVIGATE_LINE',
+                            'NAVIGATE_STATION_1',
+                            'NAVIGATE_STATION_2',
+                            'NAVIGATE_STATION_3',
+                            'NAVIGATE_RAMP_IN',
+                            'NAVIGATE_RAMP_OUT',
+                            'NAVIGATE_FLOOR_IN',
+                            'NAVIGATE_FLOOR_OUT',
+                            'NAVIGATE_LOAD_ON_1',
+                            'NAVIGATE_LOAD_OFF_1',
+                            'NAVIGATE_LOAD_ON_2',
+                            'NAVIGATE_LOAD_OFF_2',
+                            'NAVIGATE_LOAD_ON_3',
+                            'NAVIGATE_LOAD_OFF_3'
                           ]
         self.task_transitions = {
                             'MANUAL':'MANUAL',
@@ -68,20 +68,20 @@ class Mission():
            #                 'TIP':'TIP',
                             'NAVIGATE_DISPENSER':'NAVIGATE_DISPENSER',
                             'NAVIGATE_IN_BOX':'NAVIGATE_IN_BOX',
-                            'NAVIGATE_LINE':'NAVIGATE_LINE'
-           #                 'NAVIGATE_STATION_1':'NAVIGATE_STATION_1',
-           #                 'NAVIGATE_STATION_2':'NAVIGATE_STATION_2',
-           #                 'NAVIGATE_STATION_3':'NAVIGATE_STATION_3',
-           #                 'NAVIGATE_RAMP_IN':'NAVIGATE_RAMP_IN',
-           #                 'NAVIGATE_RAMP_OUT':'NAVIGATE_RAMP_OUT',
-           #                 'NAVIGATE_FLOOR_IN':'NAVIGATE_FLOOR_IN',
-           #                 'NAVIGATE_FLOOR_OUT':'NAVIGATE_FLOOR_OUT',
-           #                 'NAVIGATE_LOAD_ON_1':'NAVIGATE_LOAD_ON_1',
-           #                 'NAVIGATE_LOAD_OFF_1':'NAVIGATE_LOAD_OFF_1',
-           #                 'NAVIGATE_LOAD_ON_2':'NAVIGATE_LOAD_ON_2',
-           #                 'NAVIGATE_LOAD_OFF_2':'NAVIGATE_LOAD_OFF_2',
-           #                 'NAVIGATE_LOAD_ON_3':'NAVIGATE_LOAD_ON_3',
-           #                 'NAVIGATE_LOAD_OFF_3':'NAVIGATE_LOAD_OFF_3'
+                            'NAVIGATE_LINE':'NAVIGATE_LINE',
+                            'NAVIGATE_STATION_1':'NAVIGATE_STATION_1',
+                            'NAVIGATE_STATION_2':'NAVIGATE_STATION_2',
+                            'NAVIGATE_STATION_3':'NAVIGATE_STATION_3',
+                            'NAVIGATE_RAMP_IN':'NAVIGATE_RAMP_IN',
+                            'NAVIGATE_RAMP_OUT':'NAVIGATE_RAMP_OUT',
+                            'NAVIGATE_FLOOR_IN':'NAVIGATE_FLOOR_IN',
+                            'NAVIGATE_FLOOR_OUT':'NAVIGATE_FLOOR_OUT',
+                            'NAVIGATE_LOAD_ON_1':'NAVIGATE_LOAD_ON_1',
+                            'NAVIGATE_LOAD_OFF_1':'NAVIGATE_LOAD_OFF_1',
+                            'NAVIGATE_LOAD_ON_2':'NAVIGATE_LOAD_ON_2',
+                            'NAVIGATE_LOAD_OFF_2':'NAVIGATE_LOAD_OFF_2',
+                            'NAVIGATE_LOAD_ON_3':'NAVIGATE_LOAD_ON_3',
+                            'NAVIGATE_LOAD_OFF_3':'NAVIGATE_LOAD_OFF_3'
                             }
         
         self.dispenser_waypoints = [[3,0],[3,-3],[0,-3],[0,0]]
@@ -98,7 +98,20 @@ class Mission():
                                                         'WAIT':{'MANUAL':'WAIT'},
                                                         'NAVIGATE_DISPENSER':{'MANUAL':'NAVIGATE_DISPENSER'},
                                                         'NAVIGATE_LINE':{'MANUAL':'NAVIGATE_LINE'},
-                                                        'NAVIGATE_IN_BOX':{'MANUAL':'NAVIGATE_IN_BOX'}
+                                                        'NAVIGATE_IN_BOX':{'MANUAL':'NAVIGATE_IN_BOX'},
+                                                        'NAVIGATE_STATION_1':{'MANUAL':'NAVIGATE_STATION_1'},
+                                                        'NAVIGATE_STATION_2':{'MANUAL':'NAVIGATE_STATION_2'},
+                                                        'NAVIGATE_STATION_3':{'MANUAL':'NAVIGATE_STATION_3'},
+                                                        'NAVIGATE_RAMP_IN':{'MANUAL':'NAVIGATE_RAMP_IN'},
+                                                        'NAVIGATE_RAMP_OUT':{'MANUAL':'NAVIGATE_RAMP_OUT'},
+                                                        'NAVIGATE_FLOOR_IN':{'MANUAL':'NAVIGATE_FLOOR_IN'},
+                                                        'NAVIGATE_FLOOR_OUT':{'MANUAL':'NAVIGATE_FLOOR_OUT'},
+                                                        'NAVIGATE_LOAD_ON_1':{'MANUAL':'NAVIGATE_LOAD_ON_1'},
+                                                        'NAVIGATE_LOAD_ON_2':{'MANUAL':'NAVIGATE_LOAD_ON_2'},
+                                                        'NAVIGATE_LOAD_ON_3':{'MANUAL':'NAVIGATE_LOAD_ON_3'},
+                                                        'NAVIGATE_LOAD_OFF_1':{'MANUAL':'NAVIGATE_LOAD_OFF_1'},
+                                                        'NAVIGATE_LOAD_OFF_2':{'MANUAL':'NAVIGATE_LOAD_OFF_2'},
+                                                        'NAVIGATE_LOAD_OFF_3':{'MANUAL':'NAVIGATE_LOAD_OFF_3'}
                                                         },
                                          child_termination_cb = onPreempt)
         with manual:
@@ -111,7 +124,20 @@ class Mission():
                                                         'WAIT':{'WAIT':'WAIT'},
                                                         'NAVIGATE_DISPENSER':{'WAIT':'NAVIGATE_DISPENSER'},
                                                         'NAVIGATE_LINE':{'WAIT':'NAVIGATE_LINE'},
-                                                        'NAVIGATE_IN_BOX':{'WAIT':'NAVIGATE_IN_BOX'}
+                                                        'NAVIGATE_IN_BOX':{'WAIT':'NAVIGATE_IN_BOX'},
+                                                        'NAVIGATE_STATION_1':{'WAIT':'NAVIGATE_STATION_1'},
+                                                        'NAVIGATE_STATION_2':{'WAIT':'NAVIGATE_STATION_2'},
+                                                        'NAVIGATE_STATION_3':{'WAIT':'NAVIGATE_STATION_3'},
+                                                        'NAVIGATE_RAMP_IN':{'WAIT':'NAVIGATE_RAMP_IN'},
+                                                        'NAVIGATE_RAMP_OUT':{'WAIT':'NAVIGATE_RAMP_OUT'},
+                                                        'NAVIGATE_FLOOR_IN':{'WAIT':'NAVIGATE_FLOOR_IN'},
+                                                        'NAVIGATE_FLOOR_OUT':{'WAIT':'NAVIGATE_FLOOR_OUT'},
+                                                        'NAVIGATE_LOAD_ON_1':{'WAIT':'NAVIGATE_LOAD_ON_1'},
+                                                        'NAVIGATE_LOAD_ON_2':{'WAIT':'NAVIGATE_LOAD_ON_2'},
+                                                        'NAVIGATE_LOAD_ON_3':{'WAIT':'NAVIGATE_LOAD_ON_3'},
+                                                        'NAVIGATE_LOAD_OFF_1':{'WAIT':'NAVIGATE_LOAD_OFF_1'},
+                                                        'NAVIGATE_LOAD_OFF_2':{'WAIT':'NAVIGATE_LOAD_OFF_2'},
+                                                        'NAVIGATE_LOAD_OFF_3':{'WAIT':'NAVIGATE_LOAD_OFF_3'}
                                                         },
                                          child_termination_cb = onPreempt)
         with wait:
@@ -124,9 +150,22 @@ class Mission():
         with self.mission_control:
             smach.StateMachine.add('MANUAL', manual, transitions=self.task_transitions)
             smach.StateMachine.add('WAIT', wait, transitions=self.task_transitions)
-            smach.StateMachine.add('NAVIGATE_DISPENSER', navigate_dispenser.build(self.task_list, onPreempt), transitions=self.task_transitions)
-            smach.StateMachine.add('NAVIGATE_LINE', navigate_line.build(self.task_list, onPreempt), transitions=self.task_transitions)
-            smach.StateMachine.add('NAVIGATE_IN_BOX', navigate_in_box.build(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_DISPENSER', navigate_states.build_dispenser(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_IN_BOX', navigate_states.build_in_box(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LINE', navigate_states.build_line(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_STATION_1', navigate_states.build_station_1(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_STATION_2', navigate_states.build_station_2(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_STATION_3', navigate_states.build_station_3(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_RAMP_IN', navigate_states.build_ramp_in(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_RAMP_OUT', navigate_states.build_ramp_out(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_FLOOR_IN', navigate_states.build_floor_in(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_FLOOR_OUT', navigate_states.build_floor_out(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LOAD_ON_1', navigate_states.build_load_on_1(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LOAD_ON_2', navigate_states.build_load_on_2(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LOAD_ON_3', navigate_states.build_load_on_3(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LOAD_OFF_1', navigate_states.build_load_off_1(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LOAD_OFF_2', navigate_states.build_load_off_2(self.task_list, onPreempt), transitions=self.task_transitions)
+            smach.StateMachine.add('NAVIGATE_LOAD_OFF_3', navigate_states.build_load_off_3(self.task_list, onPreempt), transitions=self.task_transitions)
 
         return self.mission_control
                        

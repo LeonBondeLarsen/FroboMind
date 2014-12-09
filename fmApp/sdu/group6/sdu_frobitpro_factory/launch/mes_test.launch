@@ -4,7 +4,9 @@
 
 	<node pkg="rosbag" name="rosbag_record" type="record" args="-a"/>
 	
-	<node pkg="sdu_frobitpro_factory" name="gui_node" type="gui_node.py" output="screen"/>			
+	<node pkg="sdu_frobitpro_factory" name="gui_node" type="gui_node.py" output="screen"/>
+	
+	<node pkg="sdu_frobitpro_factory" name="publish_current_area_node" type="publish_current_area.py" output="screen"/>
 	
 	<group ns="fmDecisionMakers">
 		<node pkg="sdu_frobitpro_factory" name="mission" type="topic_controlled_mission.py" output="screen">

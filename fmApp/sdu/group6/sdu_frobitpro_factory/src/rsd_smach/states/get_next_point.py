@@ -1,7 +1,7 @@
 import rospy
 import smach
 import smach_ros
-from msgs.msg import StringStamped
+from std_msgs.msg import String
 
 class getNextPosition(smach.State):
     """
@@ -16,8 +16,8 @@ class getNextPosition(smach.State):
         self.position_list = wptlists.values()[0]
         self.position = 'UNKNOWN'
         
-        #self.position_topic = rospy.get_param("~rsd_area_topic", '/fmKnowledge/rsd_area')
-        #rospy.Subscriber(self.position_topic, StringStamped, self.save_position)
+        self.position_topic = rospy.get_param("~rsd_area_topic", '/fmKnowledge/rsd_area')
+        rospy.Subscriber(self.position_topic, String, self.save_position)
 
     def execute(self, userdata):
         if self.ptr == 0:

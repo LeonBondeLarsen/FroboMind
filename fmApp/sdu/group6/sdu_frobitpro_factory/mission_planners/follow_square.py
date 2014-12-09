@@ -30,14 +30,83 @@ import rospy
 import smach
 import smach_ros
 import actionlib
+from rsd_smach.states import get_next
+from position_action_server import *
+from position_action_server.msg import *
+
+def build_follow_route(parent, wpt, reverse):
+    behaviour = smach.StateMachine(outcomes=['success','preempted','aborted'])
+    # Next go to point
+    behaviour.userdata.next_x = 0.0
+    behaviour.userdata.next_y = 0.0
+    with behaviour :
+        smach.StateMachine.add(parent+'/GET_NEXT', get_next.getNextPosition(wpt,reverse), 
+                               transitions={'succeeded':parent+'/GO_TO_POINT'})
+        smach.StateMachine.add(parent+'/GO_TO_POINT', 
+                               smach_ros.SimpleActionState('/fmExecutors/position_planner',positionAction, goal_slots=['x','y','reverse']),
+                               transitions={'succeeded':parent+'/GET_NEXT','preempted':'preempted','aborted':'aborted'},
+                               remapping={'x':'next_x','y':'next_y','reverse':'reverse'})        
+
+    return behaviour
+
+##############################################################
+
+import rospy
+import smach
+import smach_ros
+import actionlib
+from generic_smach.states import wait_state
+from position_action_server import *
+from position_action_server.msg import *
+from std_msgs.msg import Bool
+
+class SafeWaypointNavigation():
+    def __init__(self, parent, wpt, reverse):
+        self.parent = parent
+        
+        self.navigation_sm = smach.Concurrence (outcomes = ['proximityAlert','preempted'], 
+                                                default_outcome = 'preempted',
+                                                outcome_map = {'preempted':{self.parent+'/FOLLOW_ROUTE':'preempted',self.parent+'/PROXIMITY_MONITOR':'preempted'}, 
+                                                               'proximityAlert':{self.parent+'/PROXIMITY_MONITOR':'invalid'},
+                                                               'preempted':{self.parent+'/PROXIMITY_MONITOR':'valid'}},
+                                                child_termination_cb = self.onPreempt)
+        with self.navigation_sm:
+            smach.Concurrence.add(self.parent+'/FOLLOW_ROUTE', build_follow_route(self.parent, wpt, reverse))
+            smach.Concurrence.add(self.parent+'/PROXIMITY_MONITOR', smach_ros.MonitorState("/fmKnowledge/proximity_ok",Bool, self.proximity_monitor_cb))    
+            
+                    
+        self.safety_sm = smach.StateMachine(outcomes=['success', 'preempted', 'aborted'])
+        with self.safety_sm:
+            smach.StateMachine.add(self.parent+'/NAVIGATION', self.navigation_sm, transitions={'proximityAlert':self.parent+'/WAIT','preempted':'preempted'})
+            smach.StateMachine.add(self.parent+'/WAIT', wait_state.WaitState(5), transitions={'succeeded':self.parent+'/CHECK', 'preempted':'preempted'})
+            smach.StateMachine.add(self.parent+'/CHECK', smach_ros.MonitorState("/fmKnowledge/proximity_ok",Bool, self.proximity_monitor_cb,1),
+                                    transitions={'invalid':self.parent+'/WAIT', 'valid':self.parent+'/NAVIGATION', 'preempted':'preempted'})
+    
+    def onPreempt(self,outcome_map):
+        """
+            Preempts all other states on child termination. 
+            TODO: Find a way to avoid this being a global function...
+        """
+        return True
+
+    def proximity_monitor_cb(self,userdata, msg):
+        return(msg.data)
+
+################################################
+
+import rospy
+import smach
+import smach_ros
+import actionlib
 import threading
 from wii_interface import wii_interface 
 #from gamepad_interface import gamepad_interface  
-from rsd_smach.behaviours import safe_wpt_navigation
+#from rsd_smach.behaviours import safe_wpt_navigation
 #from rsd_smach.states import gui_states
 from generic_smach.states import joy_states
 from nav_msgs.msg import Odometry    
 from std_msgs.msg import Float64
+
 
 class Mission():
     """    
@@ -63,7 +132,7 @@ class Mission():
 
         with autonomous:
             smach.Concurrence.add('HMI', joy_states.interfaceState(self.hmi))
-            smach.Concurrence.add('SAFETY',  safe_wpt_navigation.SafeWaypointNavigation('NAVIGATE_DISPENSER',self.square_waypoints,reverse=True).safety_sm)
+            smach.Concurrence.add('SAFETY',  SafeWaypointNavigation('NAVIGATE_DISPENSER',self.square_waypoints,reverse=True).safety_sm)
 
         
         # Build the top level mission control from the remote control state and the autonomous state

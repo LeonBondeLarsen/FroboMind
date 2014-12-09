@@ -1,6 +1,6 @@
 <launch>
-	<include file="$(find sdu_frobitpro_factory)/launch/includes/simulation.launch"/>
-	<!--include file="$(find sdu_frobitpro_factory)/launch/includes/frobitpro.launch"/-->
+	<!--include file="$(find sdu_frobitpro_factory)/launch/includes/simulation.launch"/-->
+	<include file="$(find sdu_frobitpro_factory)/launch/includes/frobitpro.launch"/>
 
 	<node pkg="rosbag" name="rosbag_record" type="record" args="-a"/>
 			

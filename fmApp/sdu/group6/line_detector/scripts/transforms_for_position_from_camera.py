@@ -1,3 +1,4 @@
+#!/usr/bin/env python 
 # -*- coding: utf-8 -*-
 """
 Created on Fri Dec  5 17:58:25 2014
@@ -10,6 +11,8 @@ import rospy, tf, cv2
 import numpy as np
 from line_follower_transformed_image import line_and_cross_detector
 from nav_msgs.msg import Odometry
+from visualization_msgs.msg import Marker
+import math
 
 
 class LineDetector(object):
@@ -31,6 +34,21 @@ class LineDetector(object):
         self.publisher = rospy.Publisher(output_topic, Odometry, queue_size=10)
         rospy.Timer(rospy.Duration(0.005), self.onCameraTimer)
         rospy.Timer(rospy.Duration(1), self.onPublishTimer)
+
+        self.marker = Marker()
+        self.marker.header.frame_id = "world"
+        self.marker.type = self.marker.SPHERE
+        self.marker.action = self.marker.ADD
+        self.marker.scale.x = 0.2
+        self.marker.scale.y = 0.2
+        self.marker.scale.z = 0.2
+        self.marker.color.a = 1.0
+        self.marker.color.r = 1.0
+        self.marker.color.g = 1.0
+        self.marker.color.b = 0.0
+        self.marker.pose.orientation.w = 1.0
+        self.marker.pose.position.z = 0.0
+        self.marker_publisher = rospy.Publisher("/line_cross_marker", Marker, queue_size=10)
         
         # Init TF listener
         self.tf_listener = tf.TransformListener()
@@ -46,7 +64,7 @@ class LineDetector(object):
     def onPublishTimer(self,event):
         self.publisher.publish(self.odometry_msg)
 
-    def getNearestPoint(self, x, y, theta):
+    def getNearestPoint(self,x_r,y_r,  x, y, theta):
         def find_nearest_cross(crosses, robot_pose):
         
             def distance(cross, camera_point):
@@ -55,16 +73,18 @@ class LineDetector(object):
             def create_lines(cross):
                 list_of_lines = []
                 for angle in [0, np.pi/2, np.pi, np.pi*1.5]:  
-                    list_of_lines.append( (cross[0]  + np.cos(angle)/10, cross[1] + np.sin(angle)/10 ) )
+                    list_of_lines.append( (cross[0]  + np.cos(angle)/10, cross[1] - np.sin(angle)/10 ) )
+                    
+                print "list_of_lines", list_of_lines
                 return list_of_lines
+                
         
-        
-            robot_angle = np.pi * ( robot_pose[1] + 90 ) /180
-            camera_point = (robot_pose[0][0] - np.cos(robot_angle)/2, robot_pose[0][1] + np.sin(robot_angle)/2 )
-#            print camera_point    
+#            robot_angle = np.pi * ( robot_pose[1] + 90 ) /180
+#            camera_point = (robot_pose[0][0] - np.cos(robot_angle)/2, robot_pose[0][1] + np.sin(robot_angle)/2 )
+#            print "camera_point", camera_point    
             dist_index = 0
             for index, cross in enumerate( crosses ):
-                if distance(cross, camera_point) < distance(crosses[dist_index],camera_point):
+                if distance(cross, (x,y) ) < distance(crosses[dist_index],(x,y)):
                     dist_index = index
             
 #            print distance(crosses[dist_index], camera_point)
@@ -74,13 +94,15 @@ class LineDetector(object):
         
             line_index = 0
             for index, line in enumerate( possible_lines ):
-                if distance(line, robot_pose[0]) < distance(possible_lines[line_index],robot_pose[0]):
+                if distance(line, (x_r, y_r)) < distance(possible_lines[line_index],(x_r, y_r)):
                     line_index = index
-                    
+            
+            print "possible_lines", possible_lines[line_index]
 #            print line_index
-            return crosses[dist_index], [0, np.pi/2, np.pi, np.pi*1.5][line_index]
+            return crosses[dist_index], [0, 90, 180, 270][line_index]
+            return crosses[dist_index], [0, 90, 180, 270][line_index]
 
-        crosses = [(-2,2), (-2,3), (2,3)]
+        crosses = [(0.0,0.0), (0.95,0), (0.95,2.35), (0.0,2.35)]
         robot_pose = [(x, y), theta]
         
         return find_nearest_cross(crosses,robot_pose)
@@ -88,7 +110,7 @@ class LineDetector(object):
     
     
 
-    def line_intersection(line1, line2):
+    def line_intersection(self,line1, line2):
         xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
         ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
     
@@ -97,7 +119,7 @@ class LineDetector(object):
     
         div = det(xdiff, ydiff)
         if div == 0:
-           raise Exception('lines do not intersect')
+           return None
     
         d = (det(*line1), det(*line2))
         x = det(d, xdiff) / div
@@ -106,18 +128,21 @@ class LineDetector(object):
         
     def updateOdometryMessage(self,value): 
         self.odometry_msg.header.stamp = rospy.Time.now()
-        if self.value is not None:
+        if value is not None:
             # Get estimated robot position
-            (tf_x,tf_y,yaw) = self.get_current_position()
+            #(tf_x,tf_y,yaw) = (0.95,2.8,np.pi/2 )      
+            #(tf_x,tf_y,yaw) = (0.5,0,np.pi ) 
+            #(tf_x,tf_y,yaw) = (0,0.5,np.pi*1.5 ) 
+            (tf_x,tf_y,yaw) = self.get_current_state()
             
-            
+            print "(tf_x,tf_y,yaw)", (tf_x,tf_y,yaw)
                         
             # Unpack state
             (x, y), theta1, theta2 = value
             sensed_x = (x*4 -300.)/1000. # [m]
             sensed_y = (300 - y*4) /1000. + 0.5  # [m]
             
-
+            print sensed_x, sensed_y, theta1, theta2
             
             # Move point to robot frame
             point_in_robot_frame_x = sensed_x
@@ -127,41 +152,80 @@ class LineDetector(object):
 #             + np.sqrt(0.5**2)*sin(theta)
             
             # Estimate position of sensed point in world frame
-            point_in_world_frame_x = tf_x + np.cos(yaw) * point_in_robot_frame_x + point_in_robot_frame_y * np.sin(yaw)
-            point_in_world_frame_y = tf_y - np.sin(yaw) * point_in_robot_frame_x + point_in_robot_frame_y * np.cos(yaw)
+            point_in_world_frame_x = tf_x + np.cos(yaw + np.pi/2) * point_in_robot_frame_x + point_in_robot_frame_y * np.sin(yaw + np.pi/2)
+            point_in_world_frame_y = tf_y - np.sin(yaw + np.pi/2) * point_in_robot_frame_x + point_in_robot_frame_y * np.cos(yaw + np.pi/2)
+
+            self.marker.pose.position.x = point_in_world_frame_x
+            self.marker.pose.position.y = point_in_world_frame_y 
+            self.marker_publisher.publish(self.marker)
+
+            print "point_in_world_frame", point_in_world_frame_x, point_in_world_frame_y
             
             # Get nearest real point
-            (known_x, known_y, closest_line_angle) = self.getNearestPoint(point_in_world_frame_x, point_in_world_frame_y, yaw)
+            (known_x, known_y), closest_line_angle = self.getNearestPoint(tf_x, tf_y, point_in_world_frame_x, point_in_world_frame_y, yaw)
                
 
             # Discern correct angle'
             if theta1 > 90:
-                theta1 = -180 + theta1               
+                theta1 = -180.0 + theta1               
             if theta2 > 90:
-                theta2 = -180 + theta2               
+                theta2 = -180.0 + theta2               
             if abs(theta1) < abs(theta2):
-                  actual_angle_of_line_to_robot = closest_line_angle + theta1
+                  actual_angle_of_line_to_robot = float(closest_line_angle) - theta1
+                  closest_angle_to_line = theta1
             else:
-                  actual_angle_of_line_to_robot = closest_line_angle + theta2                   
-             
+                  actual_angle_of_line_to_robot = float(closest_line_angle) - theta2                   
+                  closest_angle_to_line = theta2
                      
-                     
+            print "theta", closest_angle_to_line
+            print "point position to robot", float(closest_line_angle), known_x, known_y
                     
             distance_to_crossing = np.sqrt( point_in_robot_frame_x**2 + point_in_robot_frame_y**2) 
             
-            point_in_robot_frame_x_angled = point_in_robot_frame_x * np.cos( actual_angle_of_line_to_robot ) + point_in_robot_frame_y * np.sin(actual_angle_of_line_to_robot)
-            point_in_robot_frame_y_angled = -point_in_robot_frame_x * np.sin( actual_angle_of_line_to_robot ) + point_in_robot_frame_y * np.cos(actual_angle_of_line_to_robot)
-            crossing_with_zero_degree_line = self.line_intersection(((0.0, 0.0), (0, 0.5)), ((point_in_robot_frame_x, point_in_robot_frame_y), (point_in_robot_frame_x_angled, point_in_robot_frame_y_angled)))      
+            print "distance_to_crossing", distance_to_crossing
             
-            distance_zero_degree_line =  np.sqrt( crossing_with_zero_degree_line[0]**2 + crossing_with_zero_degree_line[1]**2)               
+            point_in_robot_frame_x_angled = point_in_robot_frame_x + ( 0 * np.cos( closest_angle_to_line * np.pi/180.0 ) + 1 * np.sin(closest_angle_to_line * np.pi/180.0 ) )
+            point_in_robot_frame_y_angled = -point_in_robot_frame_x + ( 0 * np.sin( closest_angle_to_line * np.pi/180.0 ) + 1 * np.cos(closest_angle_to_line * np.pi/180.0 ) )
+            print "point_in_robot_frame_x_angled", point_in_robot_frame_x_angled, point_in_robot_frame_y_angled
 
-            theta_of_cross_to_robot = np.arccos(  np.cos(actual_angle_of_line_to_robot) / (distance_to_crossing * distance_zero_degree_line  ) )
+            if False: # abs(closest_angle_to_line) < 0.01:
+                theta_of_cross_to_robot = 0.0 + float(closest_line_angle)
+            else:
+                crossing_with_zero_degree_line = self.line_intersection(((0.0, 0.0), (0.5, 0.0)), ((point_in_robot_frame_x, point_in_robot_frame_y), (point_in_robot_frame_x_angled, point_in_robot_frame_y_angled)))      
+                if crossing_with_zero_degree_line is None:
+                    print "lines do not intersect"
+                    return -1
+                print "crossing_with_zero_degree_line", crossing_with_zero_degree_line
+                
+                
+                distance_zero_degree_line =  np.sqrt( crossing_with_zero_degree_line[0]**2 + crossing_with_zero_degree_line[1]**2)               
+                print "distance_zero_degree_line", distance_zero_degree_line
+    
+                if False: # abs(distance_zero_degree_line) < 0.00001:
+                    theta_of_cross_to_robot = actual_angle_of_line_to_robot
+                else:
+                    if abs(point_in_robot_frame_x) > abs(crossing_with_zero_degree_line[0]) and math.copysign(1, crossing_with_zero_degree_line[0]) == math.copysign(1, point_in_robot_frame_x):
+                        angle_in_triangle = 90.0 + abs(closest_angle_to_line)
+                    else:
+                        angle_in_triangle = 90.0 - abs(closest_angle_to_line)
+                        
+                    theta_of_cross_to_robot = np.arcsin(  np.sin( ( angle_in_triangle)  * np.pi/180.0 ) * distance_zero_degree_line / (distance_to_crossing   ) )
+                    theta_of_cross_to_robot = math.copysign(theta_of_cross_to_robot, closest_angle_to_line)
+                    
+                    print "test", np.cos(closest_angle_to_line * np.pi/180.0 ) * distance_zero_degree_line / (distance_to_crossing   ) + float(closest_line_angle)
+            print "theta_of_cross_to_robot", theta_of_cross_to_robot * 180.0/np.pi
+
 
             # Calculate robot position
-            robot_x = known_x + point_in_robot_frame_x * np.cos( theta_of_cross_to_robot ) + point_in_robot_frame_y * np.sin(theta_of_cross_to_robot)
-            robot_y = known_y -point_in_robot_frame_x * np.sin( theta_of_cross_to_robot ) + point_in_robot_frame_y * np.cos(theta_of_cross_to_robot)
-            robot_theta = 180 - actual_angle_of_line_to_robot - theta_of_cross_to_robot
+            robot_x = known_x + point_in_robot_frame_x * np.cos( theta_of_cross_to_robot + ( closest_line_angle) * np.pi/180.0 +  np.pi/2) + point_in_robot_frame_y * np.sin( theta_of_cross_to_robot + ( closest_line_angle) * np.pi/180.0 +  np.pi/2 )
+            robot_y = known_y -point_in_robot_frame_x * np.sin( theta_of_cross_to_robot + ( closest_line_angle) * np.pi/180.0 + np.pi/2) + point_in_robot_frame_y * np.cos( theta_of_cross_to_robot  +  (closest_line_angle) * np.pi/180.0 +  np.pi/2  )
+#            robot_theta = 180.0 - angle_in_triangle - theta_of_cross_to_robot * 180.0/np.pi_            
+            
+            robot_theta = closest_angle_to_line + (closest_line_angle + 180)%360
+            print robot_x, robot_y, robot_theta
             # Update odometry message
+            
+                        # Update odometry message
             self.odometry_msg.pose.pose.position.x = robot_x
             self.odometry_msg.pose.pose.position.y = robot_y
             self.odometry_msg.pose.pose.orientation = tf.transformations.quaternion_from_euler(0, 0, robot_theta)
@@ -176,7 +240,7 @@ class LineDetector(object):
             self.odometry_msg.pose.covariance[0] = 1 # variance x
             self.odometry_msg.pose.covariance[7] = 1 # variance y
             self.odometry_msg.pose.covariance[35] = 1 # variance theta
-
+            
     def get_current_state(self):
         try:
             (position,heading) = self.listener.lookupTransform( self.line_frame, self.base_frame, rospy.Time(0) )
@@ -184,6 +248,9 @@ class LineDetector(object):
         except (tf.LookupException, tf.ConnectivityException),err:
             rospy.loginfo(rospy.get_name() + " : could not locate vehicle "+str(err))
         return (position[0],position[1],yaw)
+
+
+import time
                     
 if __name__ == '__main__':
     rospy.init_node('line_detector')

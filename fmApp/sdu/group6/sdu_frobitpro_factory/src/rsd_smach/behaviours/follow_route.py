@@ -13,7 +13,7 @@ def build(parent, wpt, reverse):
     behaviour.userdata.next_y = 0.0
     with behaviour :
         smach.StateMachine.add(parent+'/GET_NEXT', get_next_point.getNextPosition(wpt,reverse), 
-                               transitions={'succeeded':parent+'/GO_TO_POINT'})
+                               transitions={'succeeded':parent+'/GO_TO_POINT','finished':'success'})
         smach.StateMachine.add(parent+'/GO_TO_POINT', 
                                smach_ros.SimpleActionState('/fmExecutors/position_planner',positionAction, goal_slots=['x','y','reverse']),
                                transitions={'succeeded':parent+'/GET_NEXT','preempted':'preempted','aborted':'aborted'},

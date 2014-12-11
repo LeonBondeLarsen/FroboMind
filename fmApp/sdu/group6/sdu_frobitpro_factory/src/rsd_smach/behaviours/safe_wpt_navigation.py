@@ -12,9 +12,10 @@ class SafeWaypointNavigation():
     def __init__(self, parent, wpt, reverse):
         self.parent = parent
         
-        self.navigation_sm = smach.Concurrence (outcomes = ['proximityAlert','preempted'], 
+        self.navigation_sm = smach.Concurrence (outcomes = ['success', 'proximityAlert','preempted'], 
                                                 default_outcome = 'preempted',
-                                                outcome_map = {'preempted':{self.parent+'/FOLLOW_ROUTE':'preempted',self.parent+'/PROXIMITY_MONITOR':'preempted'}, 
+                                                outcome_map = {'success':{self.parent+'/FOLLOW_ROUTE':'success'},
+                                                               'preempted':{self.parent+'/FOLLOW_ROUTE':'preempted',self.parent+'/PROXIMITY_MONITOR':'preempted'}, 
                                                                'proximityAlert':{self.parent+'/PROXIMITY_MONITOR':'invalid'},
                                                                'preempted':{self.parent+'/PROXIMITY_MONITOR':'valid'}},
                                                 child_termination_cb = self.onPreempt)
@@ -25,7 +26,7 @@ class SafeWaypointNavigation():
                     
         self.safety_sm = smach.StateMachine(outcomes=['success', 'preempted', 'aborted'])
         with self.safety_sm:
-            smach.StateMachine.add(self.parent+'/NAVIGATION', self.navigation_sm, transitions={'proximityAlert':self.parent+'/WAIT','preempted':'preempted'})
+            smach.StateMachine.add(self.parent+'/NAVIGATION', self.navigation_sm, transitions={'proximityAlert':self.parent+'/WAIT','preempted':'preempted','success':'success'})
             smach.StateMachine.add(self.parent+'/WAIT', wait_state.WaitState(5), transitions={'succeeded':self.parent+'/CHECK', 'preempted':'preempted'})
             smach.StateMachine.add(self.parent+'/CHECK', smach_ros.MonitorState("/fmKnowledge/proximity_ok",Bool, self.proximity_monitor_cb,1),
                                     transitions={'invalid':self.parent+'/WAIT', 'valid':self.parent+'/NAVIGATION', 'preempted':'preempted'})

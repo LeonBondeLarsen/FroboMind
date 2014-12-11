@@ -6,14 +6,14 @@ from rsd_smach.states import publish_deadman
 from rsd_smach.states import task_controller
 
 
-def build(task_list, onPreempt, state_name, waypoint_lists):
+def build(task_list, onPreempt, state_name, waypoint_lists, reverse_mode=False):
     autonomous = smach.Concurrence(  outcomes = ['exitAutomode'],
                                     default_outcome = 'exitAutomode',
                                     outcome_map = {'exitAutomode':{state_name + '/SAFETY':'preempted',state_name + '/DEADMAN':'preempted'}},
                                     child_termination_cb = onPreempt)
 
     with autonomous:
-        smach.Concurrence.add(state_name + '/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation(state_name, waypoint_lists, reverse=False).safety_sm)
+        smach.Concurrence.add(state_name + '/SAFETY',  safe_wpt_navigation.SafeWaypointNavigation(state_name, waypoint_lists, reverse=reverse_mode).safety_sm)
         smach.Concurrence.add(state_name + '/DEADMAN', publish_deadman.publishDeadmanState() )
     ##################
 

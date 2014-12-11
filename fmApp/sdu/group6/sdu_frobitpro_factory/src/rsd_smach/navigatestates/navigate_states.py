@@ -81,29 +81,29 @@ def build_station_3(task_list, onPreempt):
 
 def build_load_off_1(task_list, onPreempt):
     waypoint_lists = { 'LINE': [[3,0],[3,-3],[0,-3],[0,0]] }
-    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_OFF_1', waypoint_lists)
+    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_OFF_1', waypoint_lists, reverse_mode=True)
 
 
 def build_load_off_2(task_list, onPreempt):
     waypoint_lists = { 'LINE': [[3,0],[3,-3],[0,-3],[0,0]] }
-    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_OFF_2', waypoint_lists)
+    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_OFF_2', waypoint_lists, reverse_mode=True)
 
 
 def build_load_off_3(task_list, onPreempt):
     waypoint_lists = { 'LINE': [[3,0],[3,-3],[0,-3],[0,0]] }
-    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_OFF_3', waypoint_lists)
+    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_OFF_3', waypoint_lists, reverse_mode=True)
 
 
 def build_load_on_1(task_list, onPreempt):
     waypoint_lists = { 'LINE': [[3,0],[3,-3],[0,-3],[0,0]] }
-    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_ON_1', waypoint_lists)
+    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_ON_1', waypoint_lists, reverse_mode=True)
 
 
 def build_load_on_2(task_list, onPreempt):
     waypoint_lists = { 'LINE': [[3,0],[3,-3],[0,-3],[0,0]] }
-    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_ON_2', waypoint_lists)
+    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_ON_2', waypoint_lists, reverse_mode=True)
 
 
 def build_load_on_3(task_list, onPreempt):
     waypoint_lists = { 'LINE': [[3,0],[3,-3],[0,-3],[0,0]] }
-    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_ON_3', waypoint_lists)
+    return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_LOAD_ON_3', waypoint_lists, reverse_mode=True)

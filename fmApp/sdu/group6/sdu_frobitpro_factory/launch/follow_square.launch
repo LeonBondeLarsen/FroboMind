@@ -39,20 +39,20 @@
 			<param name="base_frame" value="base" />
 			<param name="use_tf" value="True" />
 			
-			<param name="max_linear_velocity" value="0.2"/>
+			<param name="max_linear_velocity" value="0.3"/>
 			<param name="max_angular_velocity" value="2.0"/>
-			<param name="max_initial_angle_error" value="0.10"/>  <!-- robot turns in place if angle larger than this threshold -->
+			<param name="max_initial_angle_error" value="0.08"/>  <!-- robot turns in place if angle larger than this threshold -->
 			
-			<param name="max_distance_error" value="0.10"/>  <!-- goal is considered reached when distance to target is below this threshold -->
+			<param name="max_distance_error" value="0.05"/>  <!-- goal is considered reached when distance to target is below this threshold -->
 			<param name="max_angle_error" value="0.10"/>  <!-- retarder is active above this threshold -->
-			<param name="retarder" value="0.1"/>  <!-- linear velocity is reduced by this factor when retarder is active -->
+			<param name="retarder" value="0.15"/>  <!-- linear velocity is reduced by this factor when retarder is active -->
 			
 			<param name="lin_p" value="1.0"/>  <!-- PID parametres for linear velocity -->
 			<param name="lin_i" value="0.0"/>
 			<param name="lin_d" value="0.0"/>
 			
-			<param name="ang_p" value="0.5"/>  <!-- PID parametres for angular velocity -->
-			<param name="ang_i" value="0.5"/>
+			<param name="ang_p" value="0.8"/>  <!-- PID parametres for angular velocity -->
+			<param name="ang_i" value="1.0"/>
 			<param name="ang_d" value="0.0"/>
 			
 			<param name="int_max" value="0.2"/>  <!-- anti wind up protection common to linear and angular-->

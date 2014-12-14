@@ -55,7 +55,7 @@
 		<param name="initial_pose_a"            value="-1.57"/>
 		<param name="initial_cov_xx" 			value="0.1"/>
 		<param name="initial_cov_yy" 			value="0.1"/>
-		<param name="initial_cov_aa" 			value="0.001"/>
+		<param name="initial_cov_aa" 			value="0.1"/>
 
 		<!-- Increase tolerance because the computer can get quite busy -->
 		<param name="transform_tolerance"       value="0.2"/>

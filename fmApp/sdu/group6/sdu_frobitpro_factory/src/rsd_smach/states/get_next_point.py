@@ -2,6 +2,7 @@ import rospy
 import smach
 import smach_ros
 from std_msgs.msg import String
+from msgs.msg import StringStamped
 
 class getNextPosition(smach.State):
     """
@@ -15,12 +16,16 @@ class getNextPosition(smach.State):
         self.waypoint_lists = wptlists
         self.position_list = wptlists.values()[0]
         self.position = 'UNKNOWN'
+        self.task_msg = StringStamped()
         
         self.position_topic = rospy.get_param("~rsd_area_topic", '/fmKnowledge/rsd_area')
+        self.decision_publisher = rospy.Publisher('/fmDecisionMaking/task', StringStamped, queue_size=10)
         rospy.Subscriber(self.position_topic, String, self.save_position)
 
     def execute(self, userdata):
         if self.ptr == len(self.position_list) :
+            self.task_msg.data = 'WAIT'
+            self.decision_publisher.publish(self.task_msg)
             return 'finished'
         if self.ptr == 0:
             if self.waypoint_lists.has_key(self.position):

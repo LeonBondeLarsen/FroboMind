@@ -26,6 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #*****************************************************************************
+from geometry_msgs.msg._PoseWithCovarianceStamped import PoseWithCovarianceStamped
 """
 This file wraps the FroboMind Pose 2D Estimator library into a ROS node.
 Most documentation of the library is in pose_estimator.py
@@ -49,7 +50,7 @@ class PoseEstimatorNode():
 		rospy.loginfo(rospy.get_name() + ": Start")
 		
 		# Variables
-		self.update_rate = 5
+		self.update_rate = 10
 		self.first_odom_topic_received = False
 		self.odometry_x_prev = 0.0
 		self.odometry_y_prev = 0.0
@@ -84,12 +85,15 @@ class PoseEstimatorNode():
 		rospy.Subscriber(self.odom_topic, Odometry, self.on_odom_topic)
 		rospy.Subscriber(self.imu_topic, Imu, self.on_imu_topic)
 		rospy.Subscriber(self.line_pose_topic, Odometry, self.on_absolute_pose)
-		rospy.Subscriber(self.lrs_pose_topic, Odometry, self.on_absolute_pose)
+		
+		rospy.Subscriber(self.lrs_pose_topic, PoseWithCovarianceStamped, self.on_absolute_pose2)
+		
 		rospy.Subscriber(self.marker_pose_topic, Odometry, self.on_absolute_pose)
 
 		# setup publish topics
 		self.pose_pub = rospy.Publisher(self.pose_topic, Odometry, queue_size=10)
 		self.br = tf.TransformBroadcaster()
+		self.listener = tf.TransformListener()
 
 		# initialize estimator (preprocessing)
 		self.pp = odometry_gnss_pose_preprocessor (robot_max_velocity)
@@ -102,7 +106,7 @@ class PoseEstimatorNode():
 
 		# Call updater function
 		self.r = rospy.Rate(self.update_rate)
-		self.updater()
+		
 
 	def on_odom_topic(self, msg):
 		self.latest_odo_update = rospy.get_time()
@@ -163,6 +167,29 @@ class PoseEstimatorNode():
 		# publish the estimated pose	
 		self.publish_pose()
 
+	def on_absolute_pose2(self, msg):
+		self.latest_odo_update = rospy.get_time()
+		self.quaternion[0] = msg.pose.pose.orientation.x
+		self.quaternion[1] = msg.pose.pose.orientation.y
+		self.quaternion[2] = msg.pose.pose.orientation.z
+		self.quaternion[3] = msg.pose.pose.orientation.w
+		(roll,pitch,yaw) = euler_from_quaternion(self.quaternion)
+
+		pos_variance = (msg.pose.covariance[0] + msg.pose.covariance[7])/2.0
+		yaw_variance = msg.pose.covariance[35]
+		# EKF system update
+		
+		if pos_variance == 0.0 :
+			pos_variance = 0.000001
+			
+		if yaw_variance == 0.0 :
+			yaw_variance = 0.000001
+			
+		self.pose = self.ekf.measurement_update ([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw], pos_variance, yaw_variance)
+
+		# publish the estimated pose	
+		self.publish_pose()
+		
 
 	def on_imu_topic(self, msg):
 		self.latest_imu_update = rospy.get_time()
@@ -190,6 +217,9 @@ class PoseEstimatorNode():
 	def updater(self):
 		while not rospy.is_shutdown(): # updated at the rate defined by self.update_rate
 			if self.first_odom_topic_received == False: # publish pose from here until odometry is received.
+# 				state = self.get_transform()
+# 				if state[0] or state[1] or state[2] :
+# 					self.pose = self.ekf.measurement_update ([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw], 1.0, 1.0)
 				self.publish_pose()
 
 			# go back to sleep
@@ -204,6 +234,16 @@ class PoseEstimatorNode():
 			diff -= 2*pi
 		return diff
 
+	def get_transform(self):
+		try:
+			(position,heading) = self.listener.lookupTransform("world", "base_odom",  rospy.Time(0) )
+			(roll,pitch,yaw) = tf.transformations.euler_from_quaternion(heading)
+			return (position[0],position[1],yaw)
+		except (tf.LookupException, tf.ConnectivityException),err:
+			rospy.loginfo(rospy.get_name() + " : could not locate vehicle "+str(err))
+			return (0.0,0.0,0.0)
+		
+		
 # Main function.    
 if __name__ == '__main__':
     # Initialize the node and name it.
@@ -211,6 +251,7 @@ if __name__ == '__main__':
 
     # Go to class functions that do all the heavy lifting. Do error checking.
     try:
-        node_class = PoseEstimatorNode()
+        node = PoseEstimatorNode()
+        node.updater()
     except rospy.ROSInterruptException: pass
 

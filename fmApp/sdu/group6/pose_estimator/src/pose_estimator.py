@@ -201,8 +201,8 @@ class odometry_gnss_pose_preprocessor():
 			for i in xrange(self.odo_buf_size):
 				buffer_dist += self.odo[i][1]
 				buffer_angle += self.odo[i][2]
-				if self.odo[i][3] == False: # if we have been driving backwards the data may be invalid
-					valid = False
+				#if self.odo[i][3] == False: # if we have been driving backwards the data may be invalid
+					#valid = False
 		return (valid, buffer_dist, buffer_angle)
 
 	def angle_limit (self, angle): # return angle within [0;2pi[

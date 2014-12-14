@@ -76,6 +76,11 @@ class TCPBridgeClient(asyncore.dispatcher):
               odom.twist.twist.linear.x = 0;
               odom.twist.twist.linear.y = 0;
               odom.twist.twist.angular.z = 0;
+              
+              # Set covariance to good quality
+              odom.pose.covariance[0] = 0.001 # variance x
+              odom.pose.covariance[7] = 0.001 # variance y
+              odom.pose.covariance[35] = 0.001 # variance theta
             
               self.odom_pub.publish(odom);
 

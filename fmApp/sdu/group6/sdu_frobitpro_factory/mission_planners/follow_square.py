@@ -26,13 +26,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #****************************************************************************/
-import rospy
-import smach
-import smach_ros
-import actionlib
-from rsd_smach.states import get_next
+import rospy, smach, smach_ros, actionlib,tf
 from position_action_server import *
 from position_action_server.msg import *
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 def build_follow_route(parent, wpt, reverse):
     behaviour = smach.StateMachine(outcomes=['success','preempted','aborted'])
@@ -40,16 +37,84 @@ def build_follow_route(parent, wpt, reverse):
     behaviour.userdata.next_x = 0.0
     behaviour.userdata.next_y = 0.0
     with behaviour :
-        smach.StateMachine.add(parent+'/GET_NEXT', get_next.getNextPosition(wpt,reverse), 
+        smach.StateMachine.add(parent+'/RESET', resetState(), 
+                               transitions={'succeeded':parent+'/GET_NEXT'})
+        smach.StateMachine.add(parent+'/GET_NEXT', getNextPosition(wpt,reverse), 
                                transitions={'succeeded':parent+'/GO_TO_POINT'})
         smach.StateMachine.add(parent+'/GO_TO_POINT', 
                                smach_ros.SimpleActionState('/fmExecutors/position_planner',positionAction, goal_slots=['x','y','reverse']),
-                               transitions={'succeeded':parent+'/GET_NEXT','preempted':'preempted','aborted':'aborted'},
+                               transitions={'succeeded':parent+'/RESET','preempted':'preempted','aborted':'aborted'},
                                remapping={'x':'next_x','y':'next_y','reverse':'reverse'})        
 
     return behaviour
 
 ##############################################################
+
+from geometry_msgs.msg._PoseWithCovarianceStamped import PoseWithCovarianceStamped
+from geometry_msgs.msg import Quaternion
+
+class resetState(smach.State):
+    """
+        Resets odometry and amcl initial guess
+    """
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded'])
+        self.publisher = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=10)
+        self.listener = tf.TransformListener()
+
+    def execute(self, userdata):
+        (x,y,yaw) = self.get_transform()
+        if x or y or yaw :
+            msg = PoseWithCovarianceStamped()
+            msg.header.stamp = rospy.Time.now()
+            msg.pose.pose.position.x = x
+            msg.pose.pose.position.y = y
+            q = quaternion_from_euler (0.0,0.0,yaw)
+            msg.pose.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
+            
+            # Set covariance to good quality
+            msg.pose.covariance[0] = 0.01 # variance x
+            msg.pose.covariance[7] = 0.01 # variance y
+            msg.pose.covariance[35] = 0.01 # variance theta
+                          
+            self.publisher.publish(msg)
+        
+        return 'succeeded'
+
+    def get_transform(self):
+        try:
+            (position,heading) = self.listener.lookupTransform("map", "base",  rospy.Time(0) )
+            (roll,pitch,yaw) = tf.transformations.euler_from_quaternion(heading)
+            return (position[0],position[1],yaw)
+        except (tf.LookupException, tf.ConnectivityException),err:
+            rospy.loginfo(rospy.get_name() + " : could not locate vehicle "+str(err))
+            return (0.0,0.0,0.0)
+        
+        
+##############################################################
+
+class getNextPosition(smach.State):
+    """
+        Temporary implementation. State giving the next position goal based on hard-coded list
+    """
+    def __init__(self, wpt, reverse):
+        smach.State.__init__(self, outcomes=['succeeded'], output_keys=['next_x','next_y','reverse'])
+        self.ptr = 0
+        self.position_list = wpt
+        self.reverse = reverse
+
+    def execute(self, userdata):
+        userdata.next_x = self.position_list[self.ptr][0]
+        userdata.next_y = self.position_list[self.ptr][1]
+        userdata.reverse = self.reverse
+        rospy.loginfo("go to point: %f , %f" % (self.position_list[self.ptr][0], self.position_list[self.ptr][1]))
+        self.ptr = self.ptr + 1
+        if self.ptr == len(self.position_list) :
+            self.ptr = 0
+        return 'succeeded'
+        
+##############################################################        
+
 
 import rospy
 import smach
@@ -121,7 +186,22 @@ class Mission():
 
         self.hmi.register_callback_button_A(self.onButtonA)
         
-        self.square_waypoints = [[1,0],[1,-1],[0,-1],[0,0]]
+        self.square_waypoints = [
+                                     [0.2,-4.8],      # Inside box left
+                                     [-0.06,-4.8],       # inside box right
+                                     [-0.2,-4.2],
+                                     [-0.2,-2.0],       # Box out
+                                     
+                                     [-1.70,0.70],       # Line crosses
+                                     [-2.73,0.72],
+                                     [-2.75,1.72],
+                                     [-1.51,1.76],
+                                     [-0.95,1.78],
+                                     [1.25,1.82],
+                                     [1.93,1.82],
+                                     
+                                     [0.25,-1.5]        # Box in
+                                 ]
           
     def build(self):
         # Build the autonomous state as concurrence between wiimote and measuring behaviour to allow user preemption
@@ -132,7 +212,7 @@ class Mission():
 
         with autonomous:
             smach.Concurrence.add('HMI', joy_states.interfaceState(self.hmi))
-            smach.Concurrence.add('SAFETY',  SafeWaypointNavigation('NAVIGATE_DISPENSER',self.square_waypoints,reverse=True).safety_sm)
+            smach.Concurrence.add('SAFETY',  SafeWaypointNavigation('NAVIGATE_DISPENSER',self.square_waypoints,reverse=False).safety_sm)
 
         
         # Build the top level mission control from the remote control state and the autonomous state

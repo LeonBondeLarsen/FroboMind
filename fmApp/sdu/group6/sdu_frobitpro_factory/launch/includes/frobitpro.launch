@@ -1,5 +1,4 @@
 <launch>
-	<!-- TF: robot is base. Encoder + Imu are fused to tf from world_ to base. Encoder + Imu + GPS are fused to tf from world to base -->
 
 	<param name="diff_steer_wheel_distance" value="0.19"/>
 	<param name="ticks_per_meter_left" value="710" />
@@ -16,20 +15,10 @@
 			<param name="covariance_y" value="0.001"/>
 			<param name="covariance_z" value="0.001"/>
 		 </node>
-		 
-		  <node name="sick_tim310" pkg="sick_tim" type="sick_tim310s01" respawn="false" output="screen">
-		      <param name="min_ang" type="double" value="-2.35619449019" />
-		      <param name="max_ang" type="double" value="2.35619449019" />
-		      <param name="intensity" type="bool" value="True" />
-		      <param name="skip" type="int" value="0" />
-		      <param name="frame_id" type="str" value="laser" />
-		      <param name="time_offset" type="double" value="-0.001" />
-		      <param name="publish_datagram" type="bool" value="False" />
-		  </node>
 
-		<!--node pkg="line_detector" name="line_detection_node"  type="line_detector.py" output="screen" respawn="true">
+		<node pkg="line_detector" name="line_detection_node"  type="line_detector.py" output="screen" respawn="true">
 			<param name="pose_pub" value="/fmInformation/line_pose"/>
-		 </node-->
+		 </node>
 		 
 	</group>	
 
@@ -38,10 +27,11 @@
 	        <param name="enc_left_sub" value="/fmInformation/encoder_left" />
 	        <param name="enc_right_sub" value="/fmInformation/encoder_right" />
 	        <param name="imu_sub" value="/fmInformation/imu" />
-
 	        <param name="odom_pub" value="/fmKnowledge/odometry" />
+	        
 	        <param name="odom_estimate_frame" value="odom" />
-	        <param name="vehicle_frame" value="base_footprint" />
+	        <param name="vehicle_frame" value="base_odom" />
+	        
 	        <param name="encoder_output" value="absolute" />
 	        <param name="max_ticks_per_update" value="200" />
 	        <param name="yaw_angle_source" value="imu_angular_velocity" />
@@ -52,9 +42,9 @@
 			<param name="odom_sub" value="/fmKnowledge/odometry" />
 			<param name="imu_sub" value="/fmInformation/imu" />
 			
-			<param name="line_pose_sub" value="/fmInformation/line_pose_" />
-			<param name="lrs_pose_sub" value="/fmInformation/lrs_pose_" />
-			<param name="marker_pose_sub" value="/fmInformation/marker_pose_" />
+			<param name="line_pose_sub" value="/fmInformation/line_pose" />
+			<param name="marker_pose_sub" value="/fmInformation/marker_pose" />
+			<param name="lrs_pose_sub" value="/amcl_pose" />
 
 			<param name="pose_pub" value="/fmKnowledge/pose" />
 
@@ -65,8 +55,13 @@
 			<param name="odometry_distance_variance" value="0.000001" />
 			<param name="odometry_angular_variance" value="0.000001" /> 
 			<param name="gnss_angular_variance" value="0.0001" />
+			
 			<param name="frame_id" value="base" />
-			<param name="child_frame_id" value="world" />
+			<param name="child_frame_id" value="map" />
+			
+			<param name="easting" value="5.47" />
+			<param name="northing" value="0.358" />
+			<param name="heading" value="1.57" />
 		</node>
 	</group>
 	
@@ -121,10 +116,10 @@
             <param name="termination_character" value="10"/>
         </node>
         
-		<!--node pkg="socket_pose" type="tcp_client.py" name="marker_locator_tcp_client" output="screen">
+		<node pkg="socket_pose" type="tcp_client.py" name="marker_locator_tcp_client" output="screen">
 			<param name="order" value="7" />
 			<param name="odom_pub" value="/fmInformation/marker_pose" />
-		</node-->
+		</node>
 	</group>	
 </launch>
 

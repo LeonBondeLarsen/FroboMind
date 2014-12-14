@@ -35,21 +35,24 @@ class RSDVisualizer(object):
 		self.publisher = rospy.Publisher("/visualizer", MarkerArray, queue_size=10)
 		self.markerArray = MarkerArray()
 		self.waypoints = [
-									 [0.2,-4.8],	  # Inside box left
-									 [-0.06,-4.8],	   # inside box right
-									 [-0.2,-4.2],
-									 [-0.2,-2.0],	   # Box out
-									 
-									 [-1.70,0.70],	   # Line crosses
-									 [-2.73,0.72],
-									 [-2.75,1.72],
-									 [-1.51,1.76],
-									 [-0.95,1.78],
-									 [1.25,1.82],
-									 [1.93,1.82],
-									 
-									 [0.25,-1.5]		# Box in
-								 ]
+                                     [0.2,-4.3],      # Inside box 
+                                     [0.7,-4.3],
+                                     [0.7,-5.0],
+                                     [-0.4,-5.25],
+                                     [-0.54239938613,-4.87560666965], #dispenser
+                                     [-0.2,-4.3],
+                                     [-0.2,-2.0],       # Box out
+                                     [-1.70,0.70],       # Line crosses
+                                     [-2.73,0.72],
+                                     [-2.75,1.72],
+                                     [-1.51,1.76],
+                                     [-0.95,1.78],
+                                     [1.25,1.82],
+                                     [1.93,1.82],
+                                     
+                                     [0.25,0.0],        # Step...
+                                     [0.25,-1.5]        # Box in
+                                 ]
 		
 	def getMarker(self,x,y):
 		marker = Marker()

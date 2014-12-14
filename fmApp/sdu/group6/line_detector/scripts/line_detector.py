@@ -11,7 +11,7 @@ import rospy, tf, cv2
 import numpy as np
 from line_follower_transformed_image import line_and_cross_detector
 from nav_msgs.msg import Odometry
-from visualization_msgs.msg import Marker, MarkerArray
+from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Quaternion
 import math
 
@@ -23,7 +23,15 @@ class LineDetector(object):
 #        self.f = file("/home/leon/code/roswork/build/fmApp/sdu/group6/line_detector/catkin_generated/installspace/transformMatrix", 'rb')
 #        self.transformMatrix = pickle.load(self.f)
 
-        self.crosses = [(0.0,0.0), (0.95,0), (0.95,2.35), (0.0,2.35)]
+        self.crosses = [
+                            #[-1.70,0.70],
+                            [-2.73,0.72],
+                            [-2.75,1.72],
+                            [-1.51,1.76],
+                            [-0.95,1.78],
+                            [1.25,1.82],
+                            [1.93,1.82]
+                        ]
                 
         destination = np.array([(100,500),(100,100),(500,100),(500,500)],np.float32)
         source = np.array([(31,468),(105,28),(506,21),(590,454)],np.float32)
@@ -65,35 +73,7 @@ class LineDetector(object):
         self.r_marker.pose.orientation.w = 1.0
         self.r_marker.pose.position.z = 0.0
         self.r_marker_publisher = rospy.Publisher("/line_robot_marker", Marker, queue_size=10)
-        
-        self.cross_publisher = rospy.Publisher("/line_cross_marker", MarkerArray, queue_size=10)
-        self.cross_marker = MarkerArray()
-        
-        for (x,y) in self.crosses :
-            mark = Marker()
-            mark.header.frame_id = "world"
-            mark.type = self.r_marker.SPHERE
-            mark.action = self.r_marker.ADD
-            mark.scale.x = 0.2
-            mark.scale.y = 0.2
-            mark.scale.z = 0.2
-            mark.color.a = 0.0
-            mark.color.r = 1.0
-            mark.color.g = 1.0
-            mark.color.b = 0.0
-            mark.pose.position.x = 1.0
-            mark.pose.position.y = 1.0 
-            mark.pose.orientation.w = 1.0
-            mark.pose.position.z = 0.0
-         
-            self.cross_marker.markers.append(mark)
-        
-          # Renumber the marker IDs
-        id = 0
-        for m in self.cross_marker.markers:
-            m.id = id
-            id += 1
-        
+    
         # Init TF listener
         self.tf_listener = tf.TransformListener()
         self.quaternion = np.empty((4, ), dtype=np.float64)
@@ -247,9 +227,10 @@ class LineDetector(object):
             print "crossing_with_zero_degree_line", crossing_with_zero_degree_line
             
             
-            distance_zero_degree_line =  np.sqrt( crossing_with_zero_degree_line[0]**2 + crossing_with_zero_degree_line[1]**2)               
+            distance_zero_degree_line =  np.sqrt( crossing_with_zero_degree_line[0]**2 + crossing_with_zero_degree_line[1]**2)     
+            distance_line_to_cross = np.sqrt( (crossing_with_zero_degree_line[0] - point_in_robot_frame_x )**2 + ( crossing_with_zero_degree_line[1] - point_in_robot_frame_y)**2 )          
             print "distance_zero_degree_line", distance_zero_degree_line
-
+            print "distance_zero_to_cross", distance_line_to_cross
 
             #if not (abs(point_in_robot_frame_x) > abs(crossing_with_zero_degree_line[0]) and math.copysign(1, crossing_with_zero_degree_line[0]) == math.copysign(1, point_in_robot_frame_x)):
             if math.copysign(1, crossing_with_zero_degree_line[0]) == math.copysign(1, closest_angle_to_line):
@@ -260,11 +241,16 @@ class LineDetector(object):
             print angle_in_triangle
             theta_of_cross_to_robot = np.arcsin(  np.sin( ( angle_in_triangle)  * np.pi/180.0 ) * distance_zero_degree_line / (distance_to_crossing   ) )
             print theta_of_cross_to_robot * 180.0/np.pi
-            theta_of_cross_to_robot = math.copysign(theta_of_cross_to_robot, -closest_angle_to_line)
-                    
+            
+            theta_of_cross_to_robot = math.copysign(theta_of_cross_to_robot, crossing_with_zero_degree_line[0])
                     #print "test", np.cos(closest_angle_to_line * np.pi/180.0 ) * distance_zero_degree_line / (distance_to_crossing   ) + float(closest_line_angle)
             print "theta_of_cross_to_robot", theta_of_cross_to_robot * 180.0/np.pi
             print "angle to line", theta_of_cross_to_robot * 180.0/np.pi + closest_line_angle
+            
+            
+            theta_of_cross_to_robot = np.arccos( (distance_to_crossing**2 + distance_line_to_cross**2 - distance_zero_degree_line**2)/(2*distance_line_to_cross*distance_to_crossing)  )
+            theta_of_cross_to_robot = math.copysign(theta_of_cross_to_robot, crossing_with_zero_degree_line[0])
+            print "theta_of_cross_to_robot", theta_of_cross_to_robot * 180.0/np.pi
 
             # Calculate robot position
             #robot_x = known_x + point_in_robot_frame_y * np.cos( theta_of_cross_to_robot + ( closest_line_angle) * np.pi/180.0 +  np.pi/2) - point_in_robot_frame_x * np.sin( theta_of_cross_to_robot + ( closest_line_angle) * np.pi/180.0 +  np.pi/2 )

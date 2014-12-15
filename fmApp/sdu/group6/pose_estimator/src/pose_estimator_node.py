@@ -100,8 +100,12 @@ class PoseEstimatorNode():
 
 
 		# initialize EKF
+		self.initial_pose_x = rospy.get_param("~initial_pose_x",0.0)
+		self.initial_pose_y = rospy.get_param("~initial_pose_y",0.0)
+		self.initial_pose_a = rospy.get_param("~initial_pose_a",0.0)
+		
 		self.ekf = odometry_pose_ekf()
-		self.pose = [0.0, 0.0, 0.0]
+		self.pose = [self.initial_pose_x, self.initial_pose_y, self.initial_pose_a]
 		self.ekf.initial_guess (self.pose, self.odometry_var_dist, self.odometry_var_yaw)
 
 		# Call updater function
@@ -145,51 +149,33 @@ class PoseEstimatorNode():
 		self.odometry_yaw_prev = yaw
 
 	def on_absolute_pose(self, msg):
-		self.latest_odo_update = rospy.get_time()
 		self.quaternion[0] = msg.pose.pose.orientation.x
 		self.quaternion[1] = msg.pose.pose.orientation.y
 		self.quaternion[2] = msg.pose.pose.orientation.z
 		self.quaternion[3] = msg.pose.pose.orientation.w
 		(roll,pitch,yaw) = euler_from_quaternion(self.quaternion)
-
-		pos_variance = (msg.pose.covariance[0] + msg.pose.covariance[7])/2.0
-		yaw_variance = msg.pose.covariance[35]
-		# EKF system update
 		
-		if pos_variance == 0.0 :
-			pos_variance = 0.000001
-			
-		if yaw_variance == 0.0 :
-			yaw_variance = 0.000001
-			
-		self.pose = self.ekf.measurement_update ([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw], pos_variance, yaw_variance)
+		if abs(abs(msg.pose.pose.position.x) - abs(self.pose[0])) < 1.0 and abs(abs(msg.pose.pose.position.y) - abs(self.pose[1])) < 1.0 and abs(abs(yaw) - abs(self.pose[2])) < 0.5 :
+			self.latest_odo_update = rospy.get_time()
 
-		# publish the estimated pose	
-		self.publish_pose()
+	
+			pos_variance = (msg.pose.covariance[0] + msg.pose.covariance[7])/2.0
+			yaw_variance = msg.pose.covariance[35]
+			# EKF system update
+			
+			if pos_variance == 0.0 :
+				pos_variance = 0.000001
+				
+			if yaw_variance == 0.0 :
+				yaw_variance = 0.000001
+				
+			self.pose = self.ekf.measurement_update ([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw], pos_variance, yaw_variance)
+	
+			# publish the estimated pose	
+			self.publish_pose()
 
 	def on_absolute_pose2(self, msg):
-		self.latest_odo_update = rospy.get_time()
-		self.quaternion[0] = msg.pose.pose.orientation.x
-		self.quaternion[1] = msg.pose.pose.orientation.y
-		self.quaternion[2] = msg.pose.pose.orientation.z
-		self.quaternion[3] = msg.pose.pose.orientation.w
-		(roll,pitch,yaw) = euler_from_quaternion(self.quaternion)
-
-		pos_variance = (msg.pose.covariance[0] + msg.pose.covariance[7])/2.0
-		yaw_variance = msg.pose.covariance[35]
-		# EKF system update
-		
-		if pos_variance == 0.0 :
-			pos_variance = 0.000001
-			
-		if yaw_variance == 0.0 :
-			yaw_variance = 0.000001
-			
-		self.pose = self.ekf.measurement_update ([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw], pos_variance, yaw_variance)
-
-		# publish the estimated pose	
-		self.publish_pose()
-		
+		self.on_absolute_pose(msg)
 
 	def on_imu_topic(self, msg):
 		self.latest_imu_update = rospy.get_time()

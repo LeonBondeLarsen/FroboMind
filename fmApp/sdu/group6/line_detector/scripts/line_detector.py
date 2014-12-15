@@ -274,8 +274,8 @@ class LineDetector(object):
             self.odometry_msg.pose.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
   
             # Set covariance to good quality
-            self.odometry_msg.pose.covariance[0] = 0.00001 # variance x
-            self.odometry_msg.pose.covariance[7] = 0.00001 # variance y
+            self.odometry_msg.pose.covariance[0] = 0.0000001 # variance x
+            self.odometry_msg.pose.covariance[7] = 0.0000001 # variance y
             self.odometry_msg.pose.covariance[35] = 0.00001 # variance theta
 
             self.r_marker.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])

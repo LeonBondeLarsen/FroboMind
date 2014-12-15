@@ -73,9 +73,9 @@ class resetState(smach.State):
             msg.pose.pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
             
             # Set covariance to good quality
-            msg.pose.covariance[0] = 0.01 # variance x
-            msg.pose.covariance[7] = 0.01 # variance y
-            msg.pose.covariance[35] = 0.01 # variance theta
+            msg.pose.covariance[0] = 0.00001 # variance x
+            msg.pose.covariance[7] = 0.00001 # variance y
+            msg.pose.covariance[35] = 0.00001 # variance theta
                           
             self.publisher.publish(msg)
         
@@ -187,11 +187,14 @@ class Mission():
         self.hmi.register_callback_button_A(self.onButtonA)
         
         self.square_waypoints = [
-                                     [0.2,-4.8],      # Inside box left
-                                     [-0.06,-4.8],       # inside box right
-                                     [-0.2,-4.2],
+                                     [0.2,-4.3],      # Inside box 
+                                     [0.7,-4.3],
+                                     [0.7,-5.25],
+                                     [-0.45,-5.25],
+                                     [-0.55,-4.80], #dispenser
+                                     [-0.2,-4.3],
+                                     [-0.2,-3.0],   #step
                                      [-0.2,-2.0],       # Box out
-                                     
                                      [-1.70,0.70],       # Line crosses
                                      [-2.73,0.72],
                                      [-2.75,1.72],
@@ -200,6 +203,7 @@ class Mission():
                                      [1.25,1.82],
                                      [1.93,1.82],
                                      
+                                     [0.25,0.0],        # Step...
                                      [0.25,-1.5]        # Box in
                                  ]
           

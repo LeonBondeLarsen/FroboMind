@@ -240,8 +240,21 @@ class PositionPlanner():
             self.ang_prev_err = self.ang_err
             
             # Update twist message with control velocities
-            self.twist.twist.linear.x = (self.lin_err * self.lin_p) + (self.lin_int * self.lin_i) + (self.lin_diff * self.lin_d)
-            self.twist.twist.angular.z = (self.ang_err * self.ang_p) + (self.ang_int * self.ang_i) + (self.ang_diff * self.ang_d)
+            linear = (self.lin_err * self.lin_p) + (self.lin_int * self.lin_i) + (self.lin_diff * self.lin_d)
+            angular = (self.ang_err * self.ang_p) + (self.ang_int * self.ang_i) + (self.ang_diff * self.ang_d)
+
+            # Implement max accelerations TODO: Hardcoded for now...
+            d_linear = linear - self.twist.twist.linear.x
+            d_angular = angular - self.twist.twist.angular.z
+            if abs(d_linear) < 0.1 :
+                self.twist.twist.linear.x = linear
+            else:
+                self.twist.twist.linear.x += d_linear
+                
+            if abs(d_angular) < 0.1  :  
+                self.twist.twist.angular.z = angular
+            else:
+                self.twist.twist.angular.z += d_angular
             
             # Implement retarder to reduce linear velocity if angle error is too big
             if math.fabs(goal_angle_error) > self.max_angle_error :

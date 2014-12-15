@@ -163,14 +163,14 @@ class WorkerThread(QtCore.QThread):
  
          
     def stopButtonClicked(self):   
-        self.stopButton.setStyleSheet("background-color: blue")
-        self.freeState.setStyleSheet("background-color:red")
+#         self.stopButton.setStyleSheet("background-color: blue")
+#         self.freeState.setStyleSheet("background-color:red")
         self.task_msg.data = 'WAIT'
         self.output_pub.publish(self.task_msg)
              
     def autoModeButtonClicked(self):
         self.mode=0
-        self.task_msg.data = 'AUTO'
+        self.task_msg.data = 'WAIT'
         self.output_pub.publish(self.task_msg)
          
     def manualModeButtonClicked(self):

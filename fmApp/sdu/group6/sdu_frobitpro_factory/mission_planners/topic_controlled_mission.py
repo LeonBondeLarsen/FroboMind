@@ -29,6 +29,7 @@
 import rospy, smach, smach_ros, actionlib, threading
 from rsd_smach.navigatestates import navigate_states
 from rsd_smach.states import task_controller, server_control
+from rsd_smach.behaviours import tipper_controller
 from msgs.msg import StringStamped
     
 class Mission():
@@ -43,7 +44,7 @@ class Mission():
                             'MANUAL',
                             'WAIT',
            #                 'ABORT',
-           #                 'TIP',
+                            'TIP',
                             'NAVIGATE_DISPENSER',
                             'NAVIGATE_IN_BOX',
                             'NAVIGATE_LINE',
@@ -65,7 +66,7 @@ class Mission():
                             'MANUAL':'MANUAL',
                             'WAIT':'WAIT',
            #                 'ABORT':'ABORT',
-           #                 'TIP':'TIP',
+                            'TIP':'TIP',
                             'NAVIGATE_DISPENSER':'NAVIGATE_DISPENSER',
                             'NAVIGATE_IN_BOX':'NAVIGATE_IN_BOX',
                             'NAVIGATE_LINE':'NAVIGATE_LINE',
@@ -96,6 +97,7 @@ class Mission():
         manual = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'MANUAL',
                                          outcome_map = {'MANUAL':{'MANUAL':'MANUAL'},
                                                         'WAIT':{'MANUAL':'WAIT'},
+                                                        'TIP':{'MANUAL':'TIP'},
                                                         'NAVIGATE_DISPENSER':{'MANUAL':'NAVIGATE_DISPENSER'},
                                                         'NAVIGATE_LINE':{'MANUAL':'NAVIGATE_LINE'},
                                                         'NAVIGATE_IN_BOX':{'MANUAL':'NAVIGATE_IN_BOX'},
@@ -122,6 +124,7 @@ class Mission():
         wait = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'WAIT',
                                          outcome_map = {'MANUAL':{'WAIT':'MANUAL'},
                                                         'WAIT':{'WAIT':'WAIT'},
+                                                        'TIP':{'WAIT':'TIP'},
                                                         'NAVIGATE_DISPENSER':{'WAIT':'NAVIGATE_DISPENSER'},
                                                         'NAVIGATE_LINE':{'WAIT':'NAVIGATE_LINE'},
                                                         'NAVIGATE_IN_BOX':{'WAIT':'NAVIGATE_IN_BOX'},
@@ -144,12 +147,42 @@ class Mission():
             smach.Concurrence.add('WAIT', task_controller.TaskController('WAIT',self.task_list))
             
         ##################
+                    
+        tip = smach.Concurrence(  outcomes = self.task_list, default_outcome = 'WAIT',
+                                         outcome_map = {'MANUAL':{'CONTROL':'MANUAL'},
+                                                        'WAIT':{'CONTROL':'WAIT'},
+                                                        'WAIT':{'TIP':'WAIT'},
+                                                        'TIP':{'CONTROL':'TIP'},
+                                                        'NAVIGATE_DISPENSER':{'CONTROL':'NAVIGATE_DISPENSER'},
+                                                        'NAVIGATE_LINE':{'CONTROL':'NAVIGATE_LINE'},
+                                                        'NAVIGATE_IN_BOX':{'CONTROL':'NAVIGATE_IN_BOX'},
+                                                        'NAVIGATE_STATION_1':{'CONTROL':'NAVIGATE_STATION_1'},
+                                                        'NAVIGATE_STATION_2':{'CONTROL':'NAVIGATE_STATION_2'},
+                                                        'NAVIGATE_STATION_3':{'CONTROL':'NAVIGATE_STATION_3'},
+                                                        'NAVIGATE_RAMP_IN':{'CONTROL':'NAVIGATE_RAMP_IN'},
+                                                        'NAVIGATE_RAMP_OUT':{'CONTROL':'NAVIGATE_RAMP_OUT'},
+                                                        'NAVIGATE_FLOOR_IN':{'CONTROL':'NAVIGATE_FLOOR_IN'},
+                                                        'NAVIGATE_FLOOR_OUT':{'CONTROL':'NAVIGATE_FLOOR_OUT'},
+                                                        'NAVIGATE_LOAD_ON_1':{'CONTROL':'NAVIGATE_LOAD_ON_1'},
+                                                        'NAVIGATE_LOAD_ON_2':{'CONTROL':'NAVIGATE_LOAD_ON_2'},
+                                                        'NAVIGATE_LOAD_ON_3':{'CONTROL':'NAVIGATE_LOAD_ON_3'},
+                                                        'NAVIGATE_LOAD_OFF_1':{'CONTROL':'NAVIGATE_LOAD_OFF_1'},
+                                                        'NAVIGATE_LOAD_OFF_2':{'CONTROL':'NAVIGATE_LOAD_OFF_2'},
+                                                        'NAVIGATE_LOAD_OFF_3':{'CONTROL':'NAVIGATE_LOAD_OFF_3'}
+                                                        },
+                                         child_termination_cb = onPreempt)
+        with tip:
+            smach.Concurrence.add('TIP', tipper_controller.build())
+            smach.Concurrence.add('CONTROL', task_controller.TaskController('TIP',self.task_list))
+            
+        ##################
         
         self.mission_control = smach.StateMachine(outcomes= ['ended'])      
               
         with self.mission_control:
             smach.StateMachine.add('MANUAL', manual, transitions=self.task_transitions)
             smach.StateMachine.add('WAIT', wait, transitions=self.task_transitions)
+            smach.StateMachine.add('TIP', tip, transitions=self.task_transitions)
             smach.StateMachine.add('NAVIGATE_DISPENSER', navigate_states.build_dispenser(self.task_list, onPreempt), transitions=self.task_transitions)
             smach.StateMachine.add('NAVIGATE_IN_BOX', navigate_states.build_in_box(self.task_list, onPreempt), transitions=self.task_transitions)
             smach.StateMachine.add('NAVIGATE_LINE', navigate_states.build_line(self.task_list, onPreempt), transitions=self.task_transitions)

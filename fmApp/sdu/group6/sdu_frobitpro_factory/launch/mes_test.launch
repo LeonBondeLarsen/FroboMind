@@ -7,12 +7,12 @@
 	<node pkg="rsd_visualizer" name="visualizer"  type="rsd_visualizer.py" output="screen" respawn="true"/>
 	
 	<node pkg="sdu_frobitpro_factory" name="publish_current_area_node" type="publish_current_area.py" output="screen"/>
-	<!--node pkg="sdu_frobitpro_factory" name="mes_client_node" type="rsd_mes_mobile_client_node.py" output="screen">
+	<node pkg="sdu_frobitpro_factory" name="mes_client_node" type="rsd_mes_mobile_client_node.py" output="screen">
 		<param name="mes_command_topic" value="/mes/command" />
 		<param name="mes_status_topic" value="/mes/status" />
 		<param name="robot_id" value="3" />
 		<param name="server_address" value="http://localhost:8000" />
-	</node-->
+	</node>
 	
 	<group ns="fmDecisionMakers">
 		<node pkg="sdu_frobitpro_factory" name="mission" type="topic_controlled_mission.py" output="screen">

@@ -51,11 +51,10 @@ class WorkerThread(QtCore.QThread):
         self.pose_y=0
         self.yaw=0
         self.robot_loc=0
-        self.state_1 = 'IDLE'
-        self.state_2 = 'LOAD BRICKS FROM SILO'
-        self.state_3 = 'LOAD BRICKS ORDER FROM CELL'
-        self.state_4 = 'UNLOAD BRICKS AT CELL'
-        self.state_5 = 'RECHARGE BATTERY'
+        self.state_1 = 'STATE_FREE'
+        self.state_2 = 'STATE_ERROR'
+        self.state_3 = 'STATE_WORKING'
+      
         self.mode=0
         self.task_msg = StringStamped()
         QtCore.QThread.__init__(self)
@@ -105,11 +104,9 @@ class WorkerThread(QtCore.QThread):
         self.yawLabel.setFont(font)
         self.robotLocationLabel = self._widget.robotlocationlabel 
         self.robotLocationLabel.setFont(font)
-        self.loadBricksSiloState = self._widget.loadbricksSiloState
-        self.loadBricksCellState = self._widget.loadbricksCellState
-        self.unloadBricksState = self._widget.unloadbricksState
-        self.rechargeBatteryState = self._widget.rechargebatteryState
-        self.idleState = self._widget.idleState
+        self.freeState = self._widget.freeState
+        self.errorState= self._widget.errorState
+        self.workingState = self._widget.workingState
     
     def run(self):
         while not rospy.is_shutdown():
@@ -128,11 +125,10 @@ class WorkerThread(QtCore.QThread):
             
     # Event Handlers
     def clearStates(self):
-        self.loadBricksCellState.setStyleSheet("background-color:lightgreen")
-        self.loadBricksSiloState.setStyleSheet("background-color:lightgreen")
-        self.unloadBricksState.setStyleSheet("background-color:lightgreen")
-        self.rechargeBatteryState.setStyleSheet("background-color:lightgreen")
-        self.idleState.setStyleSheet("background-color:lightgreen")
+        
+        self.freeState.setStyleSheet("background-color:lightgreen")
+        self.errorState.setStyleSheet("background-color:lightgreen")
+        self.workingState.setStyleSheet("background-color:lightgreen")
         
     def on_robotloctopic(self,msg):
         self.robot_loc=msg
@@ -140,24 +136,17 @@ class WorkerThread(QtCore.QThread):
     def on_state_topic(self,msg):
         if(msg==self.state_1):
             self.clearStates()
-            self.idleState.setStyleSheet("background-color:red")
+            self.freeState.setStyleSheet("background-color:red")
         
         elif(msg==self.state_2):
             self.clearStates()
-            self.loadBricksSiloState.setStyleSheet("background-color:red")
+            self.errorState.setStyleSheet("background-color:red")
         
         elif(msg==self.state_3):
             self.clearStates()
-            self.loadBricksCellState.setStyleSheet("background-color:red")
+            self.workingState.setStyleSheet("background-color:red")
             
-        elif(msg==self.state_4):
-            self.clearStates()
-            self.unloadBricksState.setStyleSheet("background-color:red")
-            
-        elif(msg==self.state_5):
-            self.clearStates()
-            self.rechargeBatteryState.setStyleSheet("background-color:red")
-                 
+                   
          
     def on_posetopic(self,msg):
         qx = msg.pose.pose.orientation.x
@@ -175,7 +164,7 @@ class WorkerThread(QtCore.QThread):
          
     def stopButtonClicked(self):   
         self.stopButton.setStyleSheet("background-color: blue")
-        self.idleState.setStyleSheet("background-color:red")
+        self.freeState.setStyleSheet("background-color:red")
         self.task_msg.data = 'WAIT'
         self.output_pub.publish(self.task_msg)
              

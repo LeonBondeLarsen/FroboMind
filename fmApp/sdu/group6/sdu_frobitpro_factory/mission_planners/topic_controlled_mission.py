@@ -28,7 +28,7 @@
 #****************************************************************************/
 import rospy, smach, smach_ros, actionlib, threading
 from rsd_smach.navigatestates import navigate_states
-from rsd_smach.states import task_controller
+from rsd_smach.states import task_controller, server_control
 from msgs.msg import StringStamped
     
 class Mission():
@@ -145,7 +145,7 @@ class Mission():
             
         ##################
         
-        self.mission_control = smach.StateMachine(outcomes= [])      
+        self.mission_control = smach.StateMachine(outcomes= ['ended'])      
               
         with self.mission_control:
             smach.StateMachine.add('MANUAL', manual, transitions=self.task_transitions)
@@ -167,7 +167,13 @@ class Mission():
             smach.StateMachine.add('NAVIGATE_LOAD_OFF_2', navigate_states.build_load_off_2(self.task_list, onPreempt), transitions=self.task_transitions)
             smach.StateMachine.add('NAVIGATE_LOAD_OFF_3', navigate_states.build_load_off_3(self.task_list, onPreempt), transitions=self.task_transitions)
 
-        return self.mission_control
+        self.server_control = smach.Concurrence(outcomes= ['ended'], default_outcome = 'ended', outcome_map = {'ended':{'MISSION_CONTROL':'ended'}})
+        
+        with self.server_control:
+            smach.Concurrence.add('MISSION_CONTROL', self.mission_control)
+            smach.Concurrence.add('SERVER_COMMUNICATION', server_control.ServerControl(self.mission_control))
+        
+        return self.server_control
                        
     def spin(self):    
         self.sm = self.build()   

@@ -1,7 +1,6 @@
 import rospy
 import smach
 import smach_ros
-from std_msgs.msg import String
 from msgs.msg import StringStamped
 
 class getNextPosition(smach.State):
@@ -20,7 +19,7 @@ class getNextPosition(smach.State):
         
         self.position_topic = rospy.get_param("~rsd_area_topic", '/fmKnowledge/rsd_area')
         self.decision_publisher = rospy.Publisher('/fmDecisionMaking/task', StringStamped, queue_size=10)
-        rospy.Subscriber(self.position_topic, String, self.save_position)
+        rospy.Subscriber(self.position_topic, StringStamped, self.save_position)
 
     def execute(self, userdata):
         if self.ptr == len(self.position_list) :
@@ -42,4 +41,4 @@ class getNextPosition(smach.State):
         return 'succeeded'
         
     def save_position(self, rsd_area):
-        self.position = rsd_area
+        self.position = rsd_area.data

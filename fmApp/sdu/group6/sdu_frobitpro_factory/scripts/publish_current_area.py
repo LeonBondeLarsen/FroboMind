@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import String
+from msgs.msg import StringStamped
 from tf import TransformListener
 
 areas = {
@@ -32,12 +32,13 @@ class AreaPublisher():
         rospy.loginfo(rospy.get_name() + ": Area Evaluater Initialised")
         
         self.position_topic = rospy.get_param("~rsd_area_topic", '/fmKnowledge/rsd_area')
-        self.position_pub = rospy.Publisher(self.position_topic, String, queue_size=10)
+        self.position_pub = rospy.Publisher(self.position_topic, StringStamped, queue_size=10)
         
         self.listener = TransformListener()
         self.odom_frame = rospy.get_param("~odom_frame", "world")
         self.base_frame = rospy.get_param("~base_frame", "base")
-        self.rsd_area = 'UNKNOWN'
+        self.rsd_area = StringStamped()
+        self.rsd_area.data = 'UNKNOWN'
         rospy.Timer(rospy.Duration(2.0), self.update_area)
         rospy.loginfo("ending initialisation")
 
@@ -48,14 +49,14 @@ class AreaPublisher():
         y = self.position[1]
         
         for area, sides in areas.iteritems():
-            self.rsd_area = 'UNKNOWN'
+            self.rsd_area.data = 'UNKNOWN'
             #rospy.loginfo("checking with sides: " + str(sides[0]) + " " + str(sides[1]) + " " + str(sides[2]) + " " + str(sides[3]))
             if sides[0] < x and x < sides[2] and sides[1] < y and y < sides[3]:
-                self.rsd_area = area
+                self.rsd_area.data = area
                 if area == 'LINE_LEFT' or area == 'LINE_RIGHT' or area == 'LINE_MID':
-                    self.rsd_area = 'LINE'
+                    self.rsd_area.data = 'LINE'
                 break
-        rospy.loginfo("updating area: " + str(x) + " " + str(y) + " is " + self.rsd_area)
+        rospy.loginfo("updating area: " + str(x) + " " + str(y) + " is " + self.rsd_area.data)
         
         self.position_pub.publish(self.rsd_area)
 

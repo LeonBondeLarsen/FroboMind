@@ -18,11 +18,13 @@ find_package(catkin REQUIRED COMPONENTS rospy msgs smach smach_ros wii_interface
 #######################################
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+   mes_mobile_command.msg
+   mes_mobile_status.msg
+   mes_order.msg
+   lego_brick.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -32,10 +34,10 @@ find_package(catkin REQUIRED COMPONENTS rospy msgs smach smach_ros wii_interface
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+)
 
 ###################################################
 ## Declare things to be passed to other projects ##

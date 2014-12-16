@@ -55,10 +55,10 @@ class RSDMesMobileClientNode(RSDMesClientNode):
         self.ros_msg_command.path = ""
         if (command.has_key("path")):
             path = command['path']
-            #if type(path) == type(list):
-            #    if path.length > 0:
-            #        self.ros_msg_command.path = path[0]
-            #else:
+            if type(path) == type(list):
+                if path.length > 0:
+                    self.ros_msg_command.path = path[0]
+            else:
             self.ros_msg_command.path = path
         return
     
@@ -76,9 +76,11 @@ class RSDMesMobileClientNode(RSDMesClientNode):
             #print('about to call server with status:\n', str(status))
             command = (self.server_connection.mobile_status(status))
             #print('server returned command:\n', str(command))
-            self.setCommand(command)            
+            self.setCommand(command)
+            return True
         except:
             rospy.logerr("Communication with server failed")
+            return False
             #self.online = False
         
 if __name__ == '__main__':

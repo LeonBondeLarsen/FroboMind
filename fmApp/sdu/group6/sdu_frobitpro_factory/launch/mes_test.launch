@@ -11,7 +11,7 @@
 		<param name="mes_command_topic" value="/mes/command" />
 		<param name="mes_status_topic" value="/mes/status" />
 		<param name="robot_id" value="3" />
-		<param name="server_address" value="http://localhost:8000" />
+		<param name="server_address" value="http://192.168.1.50:8000" />
 	</node>
 	
 	<group ns="fmDecisionMakers">

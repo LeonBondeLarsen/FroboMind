@@ -92,7 +92,7 @@ class RSDMesClientNode():
 
     def publishCommand(self):        
         try:
-            #print(self.ros_msg_command)
+            print(self.ros_msg_command)
             self.ros_msg_command.header.stamp = rospy.Time.now()
             self.mes_command_publisher.publish(self.ros_msg_command)
         except:

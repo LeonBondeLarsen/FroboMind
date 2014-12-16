@@ -51,7 +51,8 @@ class RSDMesMobileClientNode(RSDMesClientNode):
         return status
         
     def setCommand(self,command):
-        self.ros_msg_command.command = self.convertCommand(command['command'])        
+        self.ros_msg_command.command = self.convertCommand(command['command'])
+        print("setcommand start: " + str(self.ros_msg_command))        
         self.ros_msg_command.path = ""
         if (command.has_key("path")):
             path = command['path']
@@ -60,6 +61,7 @@ class RSDMesMobileClientNode(RSDMesClientNode):
                     self.ros_msg_command.path = path[0]
             else:
             self.ros_msg_command.path = path
+
         return
     
     def fillDummyData(self):
@@ -73,11 +75,13 @@ class RSDMesMobileClientNode(RSDMesClientNode):
     def serverInfoExchange(self):
         try:
             status = self.getStatus()
-            #print('about to call server with status:\n', str(status))
+            print('about to call server with status:\n', str(status))
             command = (self.server_connection.mobile_status(status))
+
             #print('server returned command:\n', str(command))
             self.setCommand(command)
             return True
+
         except:
             rospy.logerr("Communication with server failed")
             return False

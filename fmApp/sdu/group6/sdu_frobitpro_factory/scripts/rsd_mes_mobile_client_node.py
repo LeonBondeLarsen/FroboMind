@@ -60,7 +60,7 @@ class RSDMesMobileClientNode(RSDMesClientNode):
                 if path.length > 0:
                     self.ros_msg_command.path = path[0]
             else:
-            self.ros_msg_command.path = path
+                self.ros_msg_command.path = path
 
         return
     

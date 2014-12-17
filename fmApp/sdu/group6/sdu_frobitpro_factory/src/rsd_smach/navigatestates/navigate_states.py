@@ -34,7 +34,7 @@ def build_ramp_out(task_list, onPreempt):
 
 
 def build_ramp_in(task_list, onPreempt):
-    waypoint_lists = {'FLOOR_IN': [wpts.get('floorin_almostinfrontoframp', [0,0]), wpts.get('floorin_infrontoframp', [0,0]), wpts.get('rampin_entrance', [0,0])] }
+    waypoint_lists = {'FLOOR_IN': [wpts.get('floorin_tofloorout', [0,0]), wpts.get('floorin_almostinfrontoframp', [0,0]), wpts.get('floorin_infrontoframp', [0,0]), wpts.get('rampin_entrance', [0,0])] }
     return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_RAMP_IN', waypoint_lists)
 
 
@@ -46,7 +46,7 @@ def build_floor_out(task_list, onPreempt):
 
 
 def build_floor_in(task_list, onPreempt):
-    waypoint_lists = {'LINE': [wpts.get('line_lowerleftcorner', [0,0]), wpts.get('line_upperleftcorner', [0,0]), wpts.get('line_upperrightcorner', [0,0]), wpts.get('line_lowerrightcorner', [0,0]), wpts.get('floorin_entrance', [0,0])],
+    waypoint_lists = {'LINE': [wpts.get('line_lowerleftcorner', [0,0]), wpts.get('line_upperleftcorner', [0,0]), wpts.get('line_cell3conveyor', [0,0]), wpts.get('line_cell3exit', [0,0]), wpts.get('line_cell2conveyor', [0,0]), wpts.get('line_cell2exit', [0,0]), wpts.get('line_cell1conveyor', [0,0]), wpts.get('line_cell1exit', [0,0]), wpts.get('line_upperrightcorner', [0,0]), wpts.get('line_lowerrightcorner', [0,0]), wpts.get('floorin_entrance', [0,0])],
                       'FLOOR_OUT': [wpts.get('floorout_tofloorin', [0,0]), wpts.get('floorin_tofloorout', [0,0])]
                       }
     return navigate_base_state.build(task_list, onPreempt, 'NAVIGATE_FLOOR_IN', waypoint_lists)

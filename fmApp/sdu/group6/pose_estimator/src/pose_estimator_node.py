@@ -155,7 +155,7 @@ class PoseEstimatorNode():
 		self.quaternion[3] = msg.pose.pose.orientation.w
 		(roll,pitch,yaw) = euler_from_quaternion(self.quaternion)
 		
-		if abs(abs(msg.pose.pose.position.x) - abs(self.pose[0])) < 1.0 and abs(abs(msg.pose.pose.position.y) - abs(self.pose[1])) < 1.0 and abs(abs(yaw) - abs(self.pose[2])) < 0.5 :
+		if abs(msg.pose.pose.position.x - self.pose[0]) < 1.0 and abs(msg.pose.pose.position.y - self.pose[1]) < 1.0 and abs( ((2*pi)+yaw)%(2*pi) - ((2*pi)+self.pose[2])%(2*pi) ) < 0.5 :
 			self.latest_odo_update = rospy.get_time()
 
 	

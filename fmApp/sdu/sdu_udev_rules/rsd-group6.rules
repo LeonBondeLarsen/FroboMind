@@ -1,3 +1,4 @@
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="A5016QUR", GROUP="dialout", MODE="0666", SYMLINK+="frobitpro"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="FTWIN5H6", GROUP="dialout", MODE="0666", SYMLINK+="imu"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="19a2", ATTRS{idProduct}=="5001", ATTRS{serial}=="12250060", GROUP="dialout", MODE="0666", SYMLINK+="lrs"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0043", ATTRS{serial}=="6493534343335171B020", GROUP="dialout", MODE="0666", SYMLINK+="tipper"
